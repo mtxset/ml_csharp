@@ -8,18 +8,18 @@ using OxyPlot.Series;
 namespace ml {
     class Program {
         static void Main(string[] args) {
+            exercise1.read_data_test();
+            // var outputToFile = "./images/ex1.png";
 
-            var outputToFile = "./images/ex1.png";
+            // var width = 1024;
+            // var height = 768;
+            // var background = OxyColors.LightGray;
+            // var resolution = 96d;
 
-            var width = 1024;
-            var height = 768;
-            var background = OxyColors.LightGray;
-            var resolution = 96d;
+            // var model = exercise1.plot_data1();
 
-            var model = exercise1.plot_data1();
-
-            // export to file using static methods
-            PngExporter.Export(model, outputToFile, width, height, background, resolution);
+            // // export to file using static methods
+            // PngExporter.Export(model, outputToFile, width, height, background, resolution);
         }
         private static IPlotModel build_scatter() {
             var model = new PlotModel { Title = "ScatterSeries" };
