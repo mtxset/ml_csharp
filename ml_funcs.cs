@@ -9,7 +9,7 @@ namespace ml {
             var result = 0.0d;
             if (x.Length != y.Length) {
                 Console.WriteLine("Arrays x and y should be equal");
-                return -1;
+                return -1;  
             }
 
             var temp = 0d;
@@ -24,9 +24,28 @@ namespace ml {
             return result;
         }
 
-        public static void feature_normalize(in double[,] train_data, out double mean, out double sigma) {
-            mean = 0;
-            sigma = 0;            
+        public static void feature_normalize(in double[,] train_data, out double[] mean, out double[] sigma) {
+            mean = new double[1];
+            sigma = new double[1];       
+        }
+
+        public static double mean(in double[] array) {
+            var sum = 0d;
+
+            for (var i = 0; i < array.Length; ++i)
+                sum += array[i];
+
+            return sum/array.Length; 
+        }
+
+        public static double stadard_deviation(in double[] array) {
+            var sum = 0d;
+            var mu = mean(array);
+
+            for (int i = 0; i < array.Length; i++)
+                sum += Math.Pow(array[i] - mu, 2);
+
+            return Math.Sqrt(sum);
         }
 
         // cost function for logistic regression

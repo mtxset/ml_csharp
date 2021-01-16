@@ -2,10 +2,10 @@
 using System.Linq;
 using OxyPlot;
 using OxyPlot.Axes;
-using OxyPlot.Core.Drawing;
 using OxyPlot.Series;
 
-namespace ml {
+namespace ml
+{
     class Program {
         static void Main(string[] args) {
             exercise1.read_data_test();
