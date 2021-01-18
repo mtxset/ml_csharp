@@ -2,13 +2,14 @@
 using System.Linq;
 using OxyPlot;
 using OxyPlot.Axes;
+using OxyPlot.Core.Drawing;
 using OxyPlot.Series;
 
-namespace ml
-{
+namespace ml {
     class Program {
         static void Main(string[] args) {
-            exercise1.read_data_test();
+
+            exercise1.test();
             // var outputToFile = "./images/ex1.png";
 
             // var width = 1024;
@@ -21,6 +22,12 @@ namespace ml
             // // export to file using static methods
             // PngExporter.Export(model, outputToFile, width, height, background, resolution);
         }
+
+        private static void test_transpose() {
+            var matrix = ml_funcs.matrix_create(10, 20, 0);
+            var trasponse_matrix = ml_funcs.matrix_transpose(matrix);
+        }
+	
         private static IPlotModel build_scatter() {
             var model = new PlotModel { Title = "ScatterSeries" };
             var scatterSeries = new ScatterSeries { MarkerType = MarkerType.Cross };
