@@ -9,3 +9,4 @@
 5. check in IL if in for in gradient_descent does not create copies
     5. 1. Update: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/in-parameter-modifier says it does not
 6. writing formulas in code is awful, create a folder with images and add link in comments
+7. need some functions to perfrom dimenion and length checks on matrices (cost_linear_regression length checks) 

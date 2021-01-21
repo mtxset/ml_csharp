@@ -157,6 +157,52 @@ namespace ml {
             return Math.Sqrt(sum / array.Length);
         }
 
+        // h = sigmoid(X * theta);
+        // J = 1/m .* (sum(-y .* log(h) .- (1 .- y) .* log(1 - h)));
+        // grad = 1/m .* sum((h .- y) .* X );
+        public static result_state cost_logistic_regression(in double[][] train_data, in double[] result_data, in double[] theta, out double cost, out double[] gradient) {
+            var result = new result_state();
+            double temp = 0d, hypothesis = 0d;
+            cost = 0d;
+            gradient = new double[theta.Length];
+            int i, t;
+
+            if (train_data.Length != result_data.Length)
+                result.add_error("Arrays train_data and result_data should have same amount of entries");
+
+            if (train_data[0].Length != theta.Length-1)
+                result.add_error("train_data should have one less size of theta entries");
+
+            if (result.has_errors()) 
+                return result;
+
+            for (i = 0; i < train_data.Length; ++i) {
+                
+                // X * theta
+                temp = theta[0];
+                for (t = 1; t < train_data[0].Length + 1; t++)
+                    temp += theta[t] * train_data[i][t - 1]; // skipping x(1)
+                
+                // h = sigmoid(X * theta);
+                hypothesis = sigmoid(temp);
+                // sum(-y .* log(h) .- (1 .- y) .* log(1 - h))
+                cost += -result_data[i] * Math.Log(hypothesis) - (1 - result_data[i]) * Math.Log(1 - hypothesis);
+                
+                // sum((h .- y) .* X; // grad = 1/m .* sum((h .- y) .* X );
+                gradient[0] += hypothesis - result_data[i];
+                for (t = 1; t < theta.Length; t++) // skipping x(1)
+                    gradient[t] += (hypothesis - result_data[i]) * train_data[i][t - 1];
+            }
+            // 1/m .* sum(..)
+            cost /= train_data.Length;
+
+            // grad = 1/m .* sum..
+            for (i = 0; i < gradient.Length; i++)
+                gradient[i] /= train_data.Length;
+
+            return result;
+        }
+
         // m = training samples
         // cost function for linear regression J(theta) = 1/2*m * sum( hypothesis(x) - y)^2
         // hypothesis = theta'x = theta(0) + theta(x) x
