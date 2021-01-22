@@ -8,8 +8,8 @@ using OxyPlot.Series;
 namespace ml {
     class Program {
         static void Main(string[] args) {
-
-            ml_func_tests.run_all_tests();
+            exercise3.test_cost_logistic_regression_regularized();
+            // ml_func_tests.run_all_tests();
             // var outputToFile = "./images/ex1.png";
 
             // var width = 1024;

@@ -157,6 +157,74 @@ namespace ml {
             return Math.Sqrt(sum / array.Length);
         }
 
+        // fmincg
+        public static result_state rasmussen(in double[][] train_data, in int max_iterations) {
+            var result = new result_state();
+            int i = 0;
+            const double RHO = 0.01, SIG = 0.5, INT = 0.1, EXT = 3.0, MAX = 20, RATION = 100; 
+            double[][] temp_train_data;
+
+            while (++i < max_iterations) {
+
+            }
+
+            return result;
+        }
+
+        // theta - parameters
+        // X - features
+        // lambda - cooeficient for regularization
+        // h = sigmoid(X * theta) logistic regression hypothesis
+        // J = (1/m .* (sum(-y .* log(h) .- (1 .- y) .* log(1 - h)))) + ((lambda/(2*m)) .* (sum(theta([2:size(theta)]) .^ 2)));
+        public static result_state cost_logistic_regression_regularized(in double[][] train_data, in double[] result_data, in double[] theta, in double lambda, out double cost, out double[] gradient) {
+            var result = new result_state();
+            double temp = 0d, hypothesis = 0d, regularization = 0d;
+            int i, t, train_data_count = train_data[0].Length;
+            cost = 0d;
+            gradient = new double[theta.Length];
+
+            if (train_data.Length != result_data.Length)
+                result.add_error("Arrays train_data and result_data should have same amount of entries");
+
+            if (train_data_count != theta.Length-1)
+                result.add_error("train_data should have one less size of theta entries");
+
+            if (result.has_errors()) 
+                return result;
+
+            for (i = 0; i < train_data.Length; i++) {
+                // X * theta
+                temp = theta[0];
+                for (t = 1; t < train_data_count + 1; t++)
+                    temp += theta[t] * train_data[i][t - 1]; // skipping x(1)
+
+                // (sum(theta([2:size(theta)]) .^ 2)));
+                for (t = 1; t < theta.Length; t++)
+                    regularization += Math.Pow(theta[t], 2);
+
+                // (lambda/(2*m)) * sum(..)
+                regularization = lambda/(2*train_data_count) * regularization;
+                
+                // h = sigmoid(X * theta);
+                hypothesis = sigmoid(temp);
+                // sum(-y .* log(h) .- (1 .- y) .* log(1 - h))
+                cost += -result_data[i] * Math.Log(hypothesis) - (1 - result_data[i]) * Math.Log(1 - hypothesis);
+
+                if (i > 0)  // we ignore bias unit (1) of theta when we regularize 
+                    cost += regularization;
+
+                // grad = (1/m .* sum((h .- y) .* X ))' + ((lambda/m) * theta);
+                gradient[0] += hypothesis - result_data[i];
+                for (t = 1; t < theta.Length; t++) { // skipping x(1)
+                    gradient[t] += (hypothesis - result_data[i]) * train_data[i][t - 1];
+                    if (i > 0) // we ignore bias unit (1) of theta when we regularize 
+                        gradient[t] += (lambda/train_data_count) * theta[t];
+                }
+            }
+
+            return result;
+        }
+
         // h = sigmoid(X * theta);
         // J = 1/m .* (sum(-y .* log(h) .- (1 .- y) .* log(1 - h)));
         // grad = 1/m .* sum((h .- y) .* X );
