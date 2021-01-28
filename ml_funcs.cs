@@ -157,6 +157,51 @@ namespace ml {
             return Math.Sqrt(sum / array.Length);
         }
 
+        public static double[] matrix_column_to_vector(in double[][] matrix, in int column) { 
+            var result = new double[matrix.Length];
+
+            for (var i = 0; i < matrix.Length; i++)
+                result[i] = matrix[i][column];
+    
+            return result;
+        }
+
+        public static double[] matrix_row_to_vector(in double[][] matrix, in int row) {
+            var result = new double[matrix[0].Length];
+
+            for (var i = 0; i < matrix.Length; i++)
+                result[i] = matrix[row][i];
+
+            return result;
+        }
+
+        // Feature mapping function to polynomial features
+        // Returns a new feature array with more features, comprising of 
+        //   X1, X2, X1.^2, X2.^2, X1*X2, X1*X2.^2, etc..
+        public static result_state map_feature(in double[] train_data_x, in double[] train_data_y, out double[][] train_data, in int degree = 6) {
+            var result = new result_state();
+            int column_size = (degree + 1) * (degree + 2) / 2, x, y, i, d;
+            train_data = matrix_create(train_data_x.Length, column_size - 1, 1);
+
+            if (train_data_x.Length != train_data_y.Length) {
+                result.add_error("both arrays should be equal");
+                return result;
+            }
+
+            d = 0;
+            for (x = 1; x <= degree; x++) { // we don't need intercept term
+                for (y = 0; y <= x; y++) {
+                    for (i = 0; i < train_data_x.Length; i++) {
+                        // (X1.^(i-j)).*(X2.^j)
+                        train_data[i][d] = Math.Pow(train_data_x[i], x-y) * Math.Pow(train_data_y[i], y);
+                    }
+                    d++;
+                }
+            }
+
+            return result;
+        } 
+
         // Minimize a continuous differentialble multivariate function
         // Conjugate gradient implementation https://en.wikipedia.org/wiki/Conjugate_gradient_method
         // fmincg

@@ -30,6 +30,11 @@ namespace ml {
                 return;
             }
 
+            var x = ml_funcs.matrix_column_to_vector(train_data, 0);
+            var y = ml_funcs.matrix_column_to_vector(train_data, 1);
+            double[][] featured_train_data;
+            result = ml_funcs.map_feature(x, y, out featured_train_data, 6);
+            
             Console.Write("cost_logistic_regression_regularized cost");
             if (Math.Round(cost, 5) == 0.69315) 
                 Console.WriteLine(" .. OK");
@@ -39,6 +44,34 @@ namespace ml {
             var test_results = new double[] { 0.008474576, 0.018788093, 0.000077771 };
             Console.Write("cost_logistic_regression_regularized gradient");
             var correct = 0;
+            for (var i = 0; i < test_results.Length; i++)
+                if (Math.Round(gradient[i], 9) == test_results[i]) correct++;
+
+            if (correct == test_results.Length)
+                Console.WriteLine(" .. OK");
+            else
+                Console.WriteLine(" .. FAILED");
+
+            Console.Write("map_feature");
+            if (Math.Round(featured_train_data[0][0], 7) == 0.051267 &&
+                Math.Round(featured_train_data[0][26], 5) == 0.11721 &&
+                Math.Round(featured_train_data[117][0], 5) == 0.63265 &&
+                Math.Round(featured_train_data[117][26], 14) == 0.00000000082291)
+                Console.WriteLine(" .. OK");
+            else
+                Console.WriteLine(" .. FAILED");
+
+            var featured_theta = new double[featured_train_data[0].Length + 1];
+            result = ml_funcs.cost_logistic_regression_regularized(featured_train_data, result_data, featured_theta, lambda, out cost, out gradient);
+            Console.Write("cost_logistic_regression_regularized after map_feature cost");
+            if (Math.Round(cost, 5) == 0.69315) 
+                Console.WriteLine(" .. OK");
+            else
+                Console.WriteLine(" .. FAILED");
+
+            test_results = new double[] { 0.008474576, 0.018788093, 0.000077771 };
+            Console.Write("cost_logistic_regression_regularized after map_feature gradient");
+            correct = 0;
             for (var i = 0; i < test_results.Length; i++)
                 if (Math.Round(gradient[i], 9) == test_results[i]) correct++;
 

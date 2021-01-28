@@ -7,6 +7,7 @@ namespace ml {
             Stopwatch s = Stopwatch.StartNew();
             
             ml.exercise2.test_log_regression_cost();
+            ml.exercise2.test_cost_logistic_regression_regularized();
 
             Console.WriteLine($"Testing time: {s.Elapsed}");
         }
