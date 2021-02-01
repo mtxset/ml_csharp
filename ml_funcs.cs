@@ -93,12 +93,38 @@ namespace ml {
         public static double[][] matrix_add_vector(in double[][] x, in double[] y) {
             return matrix_op_vector(in x, in y, operation.add);
         }
+
         public static double[][] matrix_subtract_vector(in double[][] x, in double[] y) {
             return matrix_op_vector(in x, in y, operation.subtract);
         }
 
-        public static double[][] matrix_multiply(in double[][] x, in double[][] y) {
-            var result = matrix_create(x.Length, x[0].Length);
+        public static double[] matrix_column_to_vector(in double[][] matrix, in int column) { 
+            var result = new double[matrix.Length];
+
+            for (var i = 0; i < matrix.Length; i++)
+                result[i] = matrix[i][column];
+    
+            return result;
+        }
+
+        public static double[] matrix_row_to_vector(in double[][] matrix, in int row) {
+            var result = new double[matrix[0].Length];
+
+            for (var i = 0; i < matrix.Length; i++)
+                result[i] = matrix[row][i];
+
+            return result;
+        }
+
+        public static result_state matrix_multiply(in double[][] x, in double[][] y, out double[][] output) {
+            var result = new result_state();
+            output = matrix_create(x.Length, y[0].Length);
+            
+            if (x[0].Length != y.Length) {
+                result.add_error("The number of columns of the x matrix must equal the number of rows of the y matrix.");
+                return result;
+            }
+
             int row, col, i;
             double sum;
 
@@ -108,7 +134,7 @@ namespace ml {
                     for (i = 0; i < x[0].Length; i++)
                         sum += x[row][i] * y[i][col];
 
-                    x[row][col] = sum; 
+                    output[row][col] = sum; 
                 }
             }
             return result;
@@ -157,23 +183,7 @@ namespace ml {
             return Math.Sqrt(sum / array.Length);
         }
 
-        public static double[] matrix_column_to_vector(in double[][] matrix, in int column) { 
-            var result = new double[matrix.Length];
 
-            for (var i = 0; i < matrix.Length; i++)
-                result[i] = matrix[i][column];
-    
-            return result;
-        }
-
-        public static double[] matrix_row_to_vector(in double[][] matrix, in int row) {
-            var result = new double[matrix[0].Length];
-
-            for (var i = 0; i < matrix.Length; i++)
-                result[i] = matrix[row][i];
-
-            return result;
-        }
 
         // Feature mapping function to polynomial features
         // Returns a new feature array with more features, comprising of 
@@ -207,18 +217,28 @@ namespace ml {
         // fmincg
         public static result_state rasmussen(in double[][] train_data, in double[] result_data, in double[] theta, in double lambda, in int max_iterations) {
             var result = new result_state();
-            int i = 0;
-            const double RHO = 0.01, SIG = 0.5, INT = 0.1, EXT = 3.0, MAX = 20, RATIO = 100; 
+            int i = 0, line_search_failed = 0;
+            const double RHO = 0.01, SIG = 0.5, INT = 0.1, EXT = 3.0, MAX = 20, RATIO = 100;
+            double initial_cost, initial_slope = 0d, initial_step = 0d;
+            double[] initial_gradients, search_direction;
             double[][] temp_train_data;
 
-            double initial_cost;
-            double[] initial_gradients;
-
+            // value(cost) and gradient
             result = cost_logistic_regression_regularized(train_data, result_data, theta, lambda, out initial_cost, out initial_gradients);
 
             if (result.has_errors())
                 return result;
 
+            search_direction = new double[initial_gradients.Length];
+            for (i = 0; i < initial_gradients.Length; i++) {
+                search_direction[i] = -initial_gradients[i]; // search direction is steepest
+                initial_slope += -initial_gradients[i] * initial_gradients[i]; // slope
+            }
+
+            initial_step = max_iterations / (1 - initial_slope);
+            Console.WriteLine(initial_slope);
+
+            i = 0;
             while (++i < max_iterations) {
 
             }
