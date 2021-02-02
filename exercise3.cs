@@ -5,11 +5,11 @@ namespace ml {
     public static class exercise3 {
         public static void test_rasmussen() {
             const double lambda = 0.1d;
+            const int max_iterations = 10;
             var file_path = "./data/ex3data1.txt";
             double[][] train_data;
-            double[] result_data, label_result_data, gradients, initial_theta;
-            double cost;
-            int i, labels, offset;
+            double[] result_data, label_result_data, new_theta, initial_theta, cost_progression;
+            int i, labels;
 
             var parse_result = file_utils.parse_file(file_path, out train_data, out result_data);
 
@@ -28,7 +28,7 @@ namespace ml {
                     label_result_data[label_train_count * labels + i] = 1;
 
                 initial_theta = new double[train_data[0].Length + 1];
-                var result = ml_funcs.rasmussen(train_data, label_result_data , initial_theta, lambda, 1);
+                var result = ml_funcs.rasmussen(train_data, label_result_data , initial_theta, lambda, max_iterations, out cost_progression, out new_theta);
 
                 if (result.has_errors()) {
                     Console.WriteLine(result.get_errors());

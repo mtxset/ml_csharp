@@ -215,32 +215,199 @@ namespace ml {
         // Minimize a continuous differentialble multivariate function
         // Conjugate gradient implementation https://en.wikipedia.org/wiki/Conjugate_gradient_method
         // fmincg
-        public static result_state rasmussen(in double[][] train_data, in double[] result_data, in double[] theta, in double lambda, in int max_iterations) {
+        public static result_state rasmussen(in double[][] train_data, in double[] result_data, in double[] X, in double lambda, in int max_iterations, out double[] cost_progress, out double[] new_theta) {
             var result = new result_state();
-            int i = 0, line_search_failed = 0;
+            cost_progress = new double[max_iterations];
+            bool ls_failed = false;
+            int i, c;
             const double RHO = 0.01, SIG = 0.5, INT = 0.1, EXT = 3.0, MAX = 20, RATIO = 100;
-            double initial_cost, initial_slope = 0d, initial_step = 0d;
-            double[] initial_gradients, search_direction;
-            double[][] temp_train_data;
+            double f1, d1 = 0d, z1 = 0d, f0;
+            double[] df1, s, df0, X0 = new double[result_data.Length];
+            new_theta = X0;
 
             // value(cost) and gradient
-            result = cost_logistic_regression_regularized(train_data, result_data, theta, lambda, out initial_cost, out initial_gradients);
+            result = cost_logistic_regression_regularized(train_data, result_data, X, lambda, out f1, out df1);
 
             if (result.has_errors())
                 return result;
 
-            search_direction = new double[initial_gradients.Length];
-            for (i = 0; i < initial_gradients.Length; i++) {
-                search_direction[i] = -initial_gradients[i]; // search direction is steepest
-                initial_slope += -initial_gradients[i] * initial_gradients[i]; // slope
+            s = new double[df1.Length];
+            for (i = 0; i < df1.Length; i++) {
+                s[i] = -df1[i]; // search direction is steepest
+                d1 += -df1[i] * df1[i]; // slope
             }
 
-            initial_step = max_iterations / (1 - initial_slope);
-            Console.WriteLine(initial_slope);
+            z1 = 1 / (1 - d1);
 
             i = 0;
             while (++i < max_iterations) {
+                X0 = X;         // could be not a real copy 
+                f0 = f1;        // could be not a real copy
+                df0 = df1;      // could be not a real copy 
 
+                // begin line search
+                for (c = 0; c < X0.Length; c++)
+                    X0[c] += z1 * s[c];
+
+                double f2;
+                double[] df2;
+
+                result = cost_logistic_regression_regularized(train_data, result_data, X0, lambda, out f2, out df2);
+
+                if (result.has_errors())
+                    return result; 
+
+                var d2 = 0d;
+                for (c = 0; c < df2.Length; c++)
+                    d2 += df2[c]*s[c];
+
+                // initialize point 3 equal to point 1
+                var f3 = f1;
+                var d3 = d1;
+                var z3 = -z1;
+
+                var M = MAX;
+                bool success = false;
+                double limit = -1, z2 = 0d, A, B, C;
+
+                while (true) {
+                    while ((f2 > f1 + z1 * RHO * d1 || d2 > -SIG * d1) && M > 0) {
+                        limit = z1;
+                        if (f2 > f1) // quadratic fit
+                            z2 = z3 - (0.5 * d3 * z3 * z3) / (d3 * z3 + f2 - f3);
+                        else { 
+                            // cubic fit
+                            A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3);
+                            B = 3 * (f3 - f2) -z3* (d3 + 2 * d2);
+                            z2 = (Math.Sqrt(B * B - A * d2 * z3 *z3 ) - B) / A; 
+                        }
+
+                        if (double.IsNaN(z2) || double.IsInfinity(z2))
+                            z2 = z3 / 2; // if we had a numerical problem then bisect
+
+                        z2 = Math.Max(Math.Min(z2, INT * z3), (1 - INT) * z3);
+                        z1 += + z2; 
+                        for (c = 0; c < X0.Length; c++)
+                            X0[c] += z2 * s[c];
+
+                        result = cost_logistic_regression_regularized(train_data, result_data, X0, lambda, out f2, out df2);
+
+                        if (result.has_errors())
+                            return result;
+                        
+                        i++; M--;
+                        d2 = 0d;
+                        for (c = 0; c < df2.Length; c++)
+                            d2 += df2[c]*s[c];
+
+                        z3 = z3 - z2;
+                    }
+
+                    if (f2 > f1 + z1 * RHO * d1 || d2 > -SIG * d1)
+                        break;
+                    else if (d2 > SIG * d1) {
+                        success = true; 
+                        break;
+                    }
+                    else if (M == 0)
+                        break;
+
+                    A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3);                     // make cubic extrapolation
+                    B = 3 * (f3 - f2) - z3 * (d3 + 2 * d2);
+                    z2 = -d2 * z3 *z3 / (B + Math.Sqrt(B*B - A* d2 * z3 *z3));  // num. error possible - ok!
+
+                    if (!(B*B -A * d2 * z3*z3 >= 0) || double.IsNaN(z2) || double.IsInfinity(z2) || z2 < 0) {
+                        if (limit < -0.5)                                       // if we have no upper limit
+                            z2 = z1 * (EXT-1);                                  // the extrapolate the maximum amount
+                        else
+                            z2 = (limit - z1) / 2;                              // otherwise bisect
+                    }
+                    else if (limit > -0.5 && z2 + z1 > limit)                   // extraplation beyond max?
+                        z2 = (limit-z1) / 2;                                    // bisect
+                    else if (limit < -0.5 && z2 + z1 > z1 * EXT)                // extrapolation beyond limit
+                        z2 = z1 * (EXT - 1.0);                                  // set to extrapolation limit
+                    else if (z2 < -z3 * INT)
+                        z2 = -z3 * INT;
+                    else if (limit > -0.5 && z2 < (limit - z1) *(1.0 - INT))    // too close to limit?
+                        z2 = (limit - z1) *(1.0 - INT);
+
+                    f3 = f2; d3 = d2; z3 = -z2;                                 // set point 3 equal to point 2
+                    z1 += z2;                                                   // update current estimates
+                    for (c = 0; c < X0.Length; c++)
+                        X0[c] += z2 * s[c]; 
+
+                    result = cost_logistic_regression_regularized(train_data, result_data, X0, lambda, out f2, out df2);
+
+                    if (result.has_errors())
+                        return result;
+
+                    M--; i++;
+
+                    d2 = 0d;
+                    for (c = 0; c < df2.Length; c++)
+                        d2 += df2[c]*s[c];
+                }                                                               // end of line search
+
+                if (success) {                                                  // if line search succeeded
+                    f1 = f2;                                                    // f1 - cost
+                    cost_progress[i] = f1;
+
+                    A = B = C = 0;
+
+                    // Polack-Ribiere direction
+                    for(c = 0; c < s.Length; c++) {
+                        A += df1[c] * df1[c];
+                        B += df2[c] * df2[c];
+                        C += df1[c] * df2[c];
+
+                        s[c] = ((B - C)/ A) * s[c] - df2[c];
+                    }
+
+                    // swap derivatives
+                    for (c = 0; c < s.Length; c++) {
+                        var temp = df1[c];
+                        df1[c] = df2[c];
+                        df2[c] = temp;
+                    }
+
+                    d2 = 0d;
+                    for (c = 0; c < df2.Length; c++)
+                        d2 += df2[c] * s[c];
+
+                    if (d2 > 0) {
+                        d2 = 0;
+                        for (c = 0; c < df1.Length; c++) {
+                            s[c] = -df1[c];                 // new slope must be negative
+                            d2 += -s[c] * s[c];             // otherwise use steepest direction
+                        }
+                    }
+
+                    z1 = z1 * Math.Min(RATIO, d1 / (d2 - double.MinValue));
+                    d1 = d2;
+                    ls_failed = false;
+                } else {
+                    X0 = X;         // could be not a real copy  
+                    f1 = f0;        // could be not a real copy 
+                    df1 = df0;      // could be not a real copy 
+
+                    if (ls_failed)
+                        break;
+
+                    // swap derivatives
+                    for (c = 0; c < s.Length; c++) {
+                        var temp = df1[c];
+                        df1[c] = df2[c];
+                        df2[c] = temp;
+                    }
+
+                    d1 = 0;
+                    for (c = 0; c < df1.Length; c++) {
+                        s[c] = -df1[c];                 // try steepest
+                        d1 += -s[c] * s[c];
+                    }
+                    z1 = 1 / (1 - d1);
+                    ls_failed = true;
+                }
             }
 
             return result;
