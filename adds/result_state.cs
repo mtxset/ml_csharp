@@ -2,7 +2,7 @@ namespace ml {
     public class result_state {
         private int index;
         private int max_error_count;
-        
+
         public string[] error_list;
 
         public result_state(int error_count = 10) {

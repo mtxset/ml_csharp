@@ -1,9 +1,123 @@
 using System;
+using System.IO;
 
 namespace ml {
     public static class ml_funcs {
 
-        private enum operation { add, subtract, multiply, divide }; 
+        private enum operation { add, subtract, multiply, divide };
+
+        public static bool matrix_compare_deep(in double[][] x, in double[][] y) {
+            if (x.Length != y.Length || x[0].Length != y[0].Length)
+                return false;
+
+            int row, col;
+
+            for (row = 0; row < x.Length; row++)
+                for (col = 0; col < y[0].Length; col++)
+                    if (x[row][col] != y[row][col])
+                        return false;
+
+            return true;
+        }
+
+        public static void min_value(in double[] array, out double max_value, out int max_index) {
+            double previous_value = array[0];
+            max_index = 0;
+            max_value = array[0];
+
+            for (int i = 0; i < array.Length; ++i) {
+                max_value = Math.Min(max_value, array[i]);
+                
+                if (previous_value != max_value)
+                    max_index = i;
+
+                previous_value = max_value;
+            }
+        } 
+
+        public static void max_value(in double[] array, out double max_value, out int max_index) {
+            double previous_value = array[0];
+            max_index = 0;
+            max_value = array[0];
+
+            for (int i = 0; i < array.Length; ++i) {
+                max_value = Math.Max(max_value, array[i]);
+                
+                if (previous_value != max_value)
+                    max_index = i;
+
+                previous_value = max_value;
+            }
+        }
+
+        public static result_state matrix_from_csv(string file_path, out double[][] matrix) {
+            var result = new result_state();
+            matrix = new double[0][];
+            int row, col, column_size, row_size;
+            string file_content;
+            string[] buffer, inputs;
+            bool parse_result;
+
+            result = utils.file_utils.read_file(file_path, out file_content);
+
+            if (result.has_errors())
+                return result;
+
+            buffer = file_content.Split("\r\n");
+            row_size = buffer.Length - 1; // split adds empty last entry
+            column_size = buffer[0].Split(",").Length;
+            matrix = matrix_create(row_size, column_size);
+
+            for (row = 0; row < row_size; row++) {
+                inputs = buffer[row].Split(",");
+
+                if (inputs.Length != column_size) {
+                    result.add_error("Some of rows have more columns than expected. Column size assumed from first row.");
+                    return result;
+                }
+
+                for (col = 0; col < column_size; col++) {
+                    parse_result = double.TryParse(inputs[col], out matrix[row][col]);
+
+                    if (!parse_result) {
+                        result.add_error($"Could not parse: {inputs[col]}");
+                        return result;
+                    }
+                }
+            }
+            
+            return result;
+        }
+
+        public static result_state matrix_to_csv(string file_path, in double[][] matrix, bool overwrite = true) {
+            var result = new result_state();
+
+            if (!overwrite) {
+                if (File.Exists(file_path)) {
+                    result.add_error($"{file_path} already exists. Pass true for overwrite");
+                    return result;
+                }
+            }
+
+            var buffer = new string[matrix.Length];
+
+            for (int row = 0; row < matrix.Length; row++) {
+                buffer[row] = "";
+                for (int col = 0; col < matrix[0].Length; col++) {
+                    buffer[row] += matrix[row][col].ToString();
+                    if (col != matrix[0].Length - 1)
+                        buffer[row] += ",";
+                }
+            }
+
+            try {
+                File.WriteAllLines(file_path, buffer);
+            } catch (Exception exception) {
+                result.add_error(exception.InnerException.ToString());
+            }
+
+            return result;
+        }
 
         public static double[][] matrix_create(int rows, int columns, double prefill = -1d) {
             double[][] result = new double[rows][];
@@ -212,17 +326,54 @@ namespace ml {
             return result;
         } 
 
+        // [p_max, p_index] = max(sigmoid((X * all_theta')),[], 2);
+        public static result_state predict_one_vs_all(in double[][] trained_theta, in double[][] train_data, out int[] predict_indices) {
+            var result = new result_state();
+
+            int row, col, i;
+            double predict_value;
+            var temp_matrix = matrix_create(train_data.Length, trained_theta.Length);
+            var train_data_with_term = matrix_create(train_data.Length, train_data[0].Length + 1);
+            predict_indices = new int[train_data.Length];
+
+            // adding term to training data
+            for (row = 0; row < train_data.Length; row++) {
+                train_data_with_term[row][0] = 1; 
+                for (col = 1; col < train_data[0].Length; col++) {
+                    train_data_with_term[row][col] = train_data[row][col];
+                }
+            }
+
+            // X * all_theta'
+            result = matrix_multiply(train_data_with_term, matrix_transpose(trained_theta), out temp_matrix);
+
+            if (result.has_errors()) 
+                 return result;
+
+            // sigmoid(X * all_theta')
+            i = 0;
+            for (row = 0; row < temp_matrix.Length; row++) {
+                for (col = 0; col < temp_matrix[0].Length; col++) {
+                    temp_matrix[row][col] = sigmoid(temp_matrix[row][col]);
+                }
+                // max(..)
+                max_value(temp_matrix[row], out predict_value, out predict_indices[i]);
+            }
+
+            return result;
+        }
+
         // Minimize a continuous differentialble multivariate function
         // Conjugate gradient implementation https://en.wikipedia.org/wiki/Conjugate_gradient_method
         // fmincg
         public static result_state rasmussen(in double[][] train_data, in double[] result_data, in double[] X, in double lambda, in int max_iterations, out double[] cost_progress, out double[] new_theta) {
             var result = new result_state();
             cost_progress = new double[max_iterations];
-            bool ls_failed = false;
+            bool ls_failed = false, success;
             int i, c;
             const double RHO = 0.01, SIG = 0.5, INT = 0.1, EXT = 3.0, MAX = 20, RATIO = 100;
-            double f1, d1 = 0d, z1 = 0d, f0;
-            double[] df1, s, df0, X0 = new double[result_data.Length];
+            double f1, f2, f3, d1 = 0d, d2, d3, z1 = 0d, z2, z3, f0, limit, A, B, C, temp, M;
+            double[] df1, df0, df2, s, X0 = new double[train_data[0].Length]; // feature count
             new_theta = X0;
 
             // value(cost) and gradient
@@ -240,7 +391,8 @@ namespace ml {
             z1 = 1 / (1 - d1);
 
             i = 0;
-            while (++i < max_iterations) {
+            // TODO: super slow, could because we are copying
+            while (i < max_iterations) {
                 X0 = X;         // could be not a real copy 
                 f0 = f1;        // could be not a real copy
                 df0 = df1;      // could be not a real copy 
@@ -249,27 +401,26 @@ namespace ml {
                 for (c = 0; c < X0.Length; c++)
                     X0[c] += z1 * s[c];
 
-                double f2;
-                double[] df2;
-
                 result = cost_logistic_regression_regularized(train_data, result_data, X0, lambda, out f2, out df2);
 
                 if (result.has_errors())
                     return result; 
 
-                var d2 = 0d;
+                d2 = 0d;
                 for (c = 0; c < df2.Length; c++)
                     d2 += df2[c]*s[c];
 
                 // initialize point 3 equal to point 1
-                var f3 = f1;
-                var d3 = d1;
-                var z3 = -z1;
+                f3 = f1;
+                d3 = d1;
+                z3 = -z1;
 
-                var M = MAX;
-                bool success = false;
-                double limit = -1, z2 = 0d, A, B, C;
-
+                M = MAX;
+                success = false;
+                limit = -1;
+                z2 = 0d; 
+                A = B = C = 0;
+ 
                 while (true) {
                     while ((f2 > f1 + z1 * RHO * d1 || d2 > -SIG * d1) && M > 0) {
                         limit = z1;
@@ -318,7 +469,7 @@ namespace ml {
 
                     if (!(B*B -A * d2 * z3*z3 >= 0) || double.IsNaN(z2) || double.IsInfinity(z2) || z2 < 0) {
                         if (limit < -0.5)                                       // if we have no upper limit
-                            z2 = z1 * (EXT-1);                                  // the extrapolate the maximum amount
+                            z2 = z1 * (EXT - 1);                                // the extrapolate the maximum amount
                         else
                             z2 = (limit - z1) / 2;                              // otherwise bisect
                     }
@@ -363,9 +514,12 @@ namespace ml {
                         s[c] = ((B - C)/ A) * s[c] - df2[c];
                     }
 
+                    for(c = 0; c < s.Length; c++)
+                        s[c] = ((B - C)/ A) * s[c] - df2[c];
+
                     // swap derivatives
                     for (c = 0; c < s.Length; c++) {
-                        var temp = df1[c];
+                        temp = df1[c];
                         df1[c] = df2[c];
                         df2[c] = temp;
                     }
@@ -395,7 +549,7 @@ namespace ml {
 
                     // swap derivatives
                     for (c = 0; c < s.Length; c++) {
-                        var temp = df1[c];
+                        temp = df1[c];
                         df1[c] = df2[c];
                         df2[c] = temp;
                     }
@@ -409,6 +563,8 @@ namespace ml {
                     ls_failed = true;
                 }
             }
+
+            new_theta = X0;
 
             return result;
         }
@@ -430,7 +586,7 @@ namespace ml {
                 result.add_error("Arrays train_data and result_data should have same amount of entries");
 
             if (train_data[0].Length != theta.Length-1)
-                result.add_error("train_data should have one less size of theta entries");
+                result.add_error("train_data column count should have one less size of theta size");
 
             if (result.has_errors()) 
                 return result;
