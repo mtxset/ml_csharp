@@ -18,7 +18,7 @@ namespace ml {
                 error_list[index++] = error;
         }
 
-        public void combine_errors(in result_state result) {
+        public void combine_errors(result_state result) {
             if (!result.has_errors())
                 return;
             

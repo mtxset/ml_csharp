@@ -124,6 +124,7 @@ namespace ml {
             test_matrix_functions();
             ml.exercise2.test_log_regression_cost();
             ml.exercise2.test_cost_logistic_regression_regularized();
+            ml.exercise3.test_rasmussen();
 
             Console.WriteLine($"Testing time: {s.Elapsed}");
         }

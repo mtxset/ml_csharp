@@ -6,7 +6,7 @@ namespace ml {
 
         private enum operation { add, subtract, multiply, divide };
 
-        public static bool matrix_compare_deep(in double[][] x, in double[][] y) {
+        public static bool matrix_compare_deep(double[][] x, double[][] y) {
             if (x.Length != y.Length || x[0].Length != y[0].Length)
                 return false;
 
@@ -20,7 +20,7 @@ namespace ml {
             return true;
         }
 
-        public static void min_value(in double[] array, out double max_value, out int max_index) {
+        public static void min_value(double[] array, out double max_value, out int max_index) {
             double previous_value = array[0];
             max_index = 0;
             max_value = array[0];
@@ -35,7 +35,7 @@ namespace ml {
             }
         } 
 
-        public static void max_value(in double[] array, out double max_value, out int max_index) {
+        public static void max_value(double[] array, out double max_value, out int max_index) {
             double previous_value = array[0];
             max_index = 0;
             max_value = array[0];
@@ -89,7 +89,29 @@ namespace ml {
             return result;
         }
 
-        public static result_state matrix_to_csv(string file_path, in double[][] matrix, bool overwrite = true) {
+        public static result_state vector_to_csv(string file_path, double[] vector, bool overwrite = true) {
+            var result = new result_state();
+
+            if (!overwrite) {
+                if (File.Exists(file_path)) {
+                    result.add_error($"{file_path} already exists. Pass true for overwrite");
+                    return result;
+                }
+            }
+
+            string buffer = ""; 
+
+            for (int i = 0; i < vector.Length; i++)
+                buffer += vector[i].ToString() + ",";
+
+            buffer = buffer.Remove(buffer.Length - 1); // removing last comma
+
+            File.WriteAllText(file_path, buffer);
+
+            return result;
+        }
+
+        public static result_state matrix_to_csv(string file_path, double[][] matrix, bool overwrite = true) {
             var result = new result_state();
 
             if (!overwrite) {
@@ -103,18 +125,14 @@ namespace ml {
 
             for (int row = 0; row < matrix.Length; row++) {
                 buffer[row] = "";
-                for (int col = 0; col < matrix[0].Length; col++) {
-                    buffer[row] += matrix[row][col].ToString();
-                    if (col != matrix[0].Length - 1)
-                        buffer[row] += ",";
-                }
+
+                for (int col = 0; col < matrix[0].Length; col++)
+                    buffer[row] += matrix[row][col].ToString() + ",";
+
+                buffer[row] = buffer[row].Remove(buffer[row].Length - 1); // removing last comma
             }
 
-            try {
-                File.WriteAllLines(file_path, buffer);
-            } catch (Exception exception) {
-                result.add_error(exception.InnerException.ToString());
-            }
+            File.WriteAllLines(file_path, buffer);
 
             return result;
         }
@@ -134,7 +152,7 @@ namespace ml {
             return result;
         }
 
-        public static double[][] matrix_transpose(in double[][] matrix) {
+        public static double[][] matrix_transpose(double[][] matrix) {
             var result = matrix_create(matrix[0].Length, matrix.Length);
             int row, col;
 
@@ -146,7 +164,7 @@ namespace ml {
             return result;
         }
 
-        public static double[][] matrix_subtract(in double[][] x, in double[][] y) {
+        public static double[][] matrix_subtract(double[][] x, double[][] y) {
             var result = matrix_create(x.Length, x[0].Length);
             int row, col;
 
@@ -158,7 +176,7 @@ namespace ml {
             return result;
         }
 
-        public static double[][] matrix_add(in double[][] x, in double[][] y) {
+        public static double[][] matrix_add(double[][] x, double[][] y) {
             var result = matrix_create(x.Length, x[0].Length);
             int row, col;
 
@@ -170,7 +188,7 @@ namespace ml {
             return result;
         }
 
-        private static double[][] matrix_op_vector(in double[][] x, in double[] y, operation op) {
+        private static double[][] matrix_op_vector(double[][] x, double[] y, operation op) {
             var result = matrix_create(x.Length, x[0].Length);
             int row, col;
 
@@ -196,23 +214,23 @@ namespace ml {
             return result;
         } 
 
-        public static double[][] matrix_divide_vector(in double[][] x, in double[] y) {
-            return matrix_op_vector(in x, in y, operation.divide);
+        public static double[][] matrix_divide_vector(double[][] x, double[] y) {
+            return matrix_op_vector(x, y, operation.divide);
         }
 
-        public static double[][] matrix_multiply_vector(in double[][] x, in double[] y) {
-            return matrix_op_vector(in x, in y, operation.multiply);
+        public static double[][] matrix_multiply_vector(double[][] x, double[] y) {
+            return matrix_op_vector(x, y, operation.multiply);
         }
 
-        public static double[][] matrix_add_vector(in double[][] x, in double[] y) {
-            return matrix_op_vector(in x, in y, operation.add);
+        public static double[][] matrix_add_vector(double[][] x, double[] y) {
+            return matrix_op_vector(x, y, operation.add);
         }
 
-        public static double[][] matrix_subtract_vector(in double[][] x, in double[] y) {
-            return matrix_op_vector(in x, in y, operation.subtract);
+        public static double[][] matrix_subtract_vector(double[][] x, double[] y) {
+            return matrix_op_vector(x, y, operation.subtract);
         }
 
-        public static double[] matrix_column_to_vector(in double[][] matrix, in int column) { 
+        public static double[] matrix_column_to_vector(double[][] matrix, int column) { 
             var result = new double[matrix.Length];
 
             for (var i = 0; i < matrix.Length; i++)
@@ -221,7 +239,7 @@ namespace ml {
             return result;
         }
 
-        public static double[] matrix_row_to_vector(in double[][] matrix, in int row) {
+        public static double[] matrix_row_to_vector(double[][] matrix, int row) {
             var result = new double[matrix[0].Length];
 
             for (var i = 0; i < matrix.Length; i++)
@@ -230,7 +248,7 @@ namespace ml {
             return result;
         }
 
-        public static result_state matrix_multiply(in double[][] x, in double[][] y, out double[][] output) {
+        public static result_state matrix_multiply(double[][] x, double[][] y, out double[][] output) {
             var result = new result_state();
             output = matrix_create(x.Length, y[0].Length);
             
@@ -254,13 +272,13 @@ namespace ml {
             return result;
         }
 
-        public static double sigmoid(in double value) {
+        public static double sigmoid(double value) {
             return 1.0d / (1.0d + Math.Exp(-value));
         }
         
         // sigma - standard deviation
         // X_norm = (X - mean) ./ sigma;
-        public static void feature_normalize(in double[][] train_data, out double[] mean, out double[] sigma, out double[][] norm_train_data) {
+        public static void feature_normalize(double[][] train_data, out double[] mean, out double[] sigma, out double[][] norm_train_data) {
             mean = new double[train_data[0].Length];
             sigma = new double[train_data[0].Length];
             double[][] temp;
@@ -278,7 +296,7 @@ namespace ml {
             norm_train_data = matrix_divide_vector(temp, sigma);
         }
 
-        public static double mean(in double[] array) {
+        public static double mean(double[] array) {
             var sum = 0d;
 
             for (var i = 0; i < array.Length; ++i)
@@ -287,7 +305,7 @@ namespace ml {
             return sum/array.Length; 
         }
 
-        public static double stadard_deviation(in double[] array) {
+        public static double stadard_deviation(double[] array) {
             var sum = 0d;
             var mu = mean(array);
 
@@ -302,7 +320,7 @@ namespace ml {
         // Feature mapping function to polynomial features
         // Returns a new feature array with more features, comprising of 
         //   X1, X2, X1.^2, X2.^2, X1*X2, X1*X2.^2, etc..
-        public static result_state map_feature(in double[] train_data_x, in double[] train_data_y, out double[][] train_data, in int degree = 6) {
+        public static result_state map_feature(double[] train_data_x, double[] train_data_y, out double[][] train_data, int degree = 6) {
             var result = new result_state();
             int column_size = (degree + 1) * (degree + 2) / 2, x, y, i, d;
             train_data = matrix_create(train_data_x.Length, column_size - 1, 1);
@@ -327,10 +345,10 @@ namespace ml {
         } 
 
         // [p_max, p_index] = max(sigmoid((X * all_theta')),[], 2);
-        public static result_state predict_one_vs_all(in double[][] trained_theta, in double[][] train_data, out int[] predict_indices) {
+        public static result_state predict_one_vs_all(double[][] trained_theta, double[][] train_data, out int[] predict_indices) {
             var result = new result_state();
 
-            int row, col, i;
+            int row, col;
             double predict_value;
             var temp_matrix = matrix_create(train_data.Length, trained_theta.Length);
             var train_data_with_term = matrix_create(train_data.Length, train_data[0].Length + 1);
@@ -340,7 +358,7 @@ namespace ml {
             for (row = 0; row < train_data.Length; row++) {
                 train_data_with_term[row][0] = 1; 
                 for (col = 1; col < train_data[0].Length; col++) {
-                    train_data_with_term[row][col] = train_data[row][col];
+                    train_data_with_term[row][col] = train_data[row][col - 1]; // offsetting col = 1
                 }
             }
 
@@ -351,29 +369,30 @@ namespace ml {
                  return result;
 
             // sigmoid(X * all_theta')
-            i = 0;
             for (row = 0; row < temp_matrix.Length; row++) {
                 for (col = 0; col < temp_matrix[0].Length; col++) {
                     temp_matrix[row][col] = sigmoid(temp_matrix[row][col]);
                 }
                 // max(..)
-                max_value(temp_matrix[row], out predict_value, out predict_indices[i]);
+                max_value(temp_matrix[row], out predict_value, out predict_indices[row]);
             }
 
             return result;
         }
 
+        // (C) Copyright 1999, 2000 & 2001, Carl Edward Rasmussen
+        // Ported to C#
         // Minimize a continuous differentialble multivariate function
         // Conjugate gradient implementation https://en.wikipedia.org/wiki/Conjugate_gradient_method
         // fmincg
-        public static result_state rasmussen(in double[][] train_data, in double[] result_data, in double[] X, in double lambda, in int max_iterations, out double[] cost_progress, out double[] new_theta) {
+        public static result_state rasmussen(double[][] train_data, double[] result_data, double[] initial_theta, double lambda, int max_iterations, out double[] cost_progress, out double[] new_theta) {
             var result = new result_state();
             cost_progress = new double[max_iterations];
             bool ls_failed = false, success;
-            int i, c;
+            int i, c, feature_count = initial_theta.Length;
             const double RHO = 0.01, SIG = 0.5, INT = 0.1, EXT = 3.0, MAX = 20, RATIO = 100;
             double f1, f2, f3, d1 = 0d, d2, d3, z1 = 0d, z2, z3, f0, limit, A, B, C, temp, M;
-            double[] df1, df0, df2, s, X0 = new double[train_data[0].Length]; // feature count
+            double[] df1, df0 = new double[feature_count], df2, s, X0 = new double[feature_count], X = new double[feature_count];
             new_theta = X0;
 
             // value(cost) and gradient
@@ -390,25 +409,29 @@ namespace ml {
 
             z1 = 1 / (1 - d1);
 
+            for (c = 0; c < feature_count; c++)
+                X[c] = initial_theta[c];
+
             i = 0;
-            // TODO: super slow, could because we are copying
             while (i < max_iterations) {
-                X0 = X;         // could be not a real copy 
-                f0 = f1;        // could be not a real copy
-                df0 = df1;      // could be not a real copy 
+                for (c = 0; c < feature_count; c++) {
+                    X0[c] = X[c];
+                    df0[c] = df1[c];
+                }
+                f0 = f1;
 
                 // begin line search
-                for (c = 0; c < X0.Length; c++)
-                    X0[c] += z1 * s[c];
+                for (c = 0; c < X.Length; c++)
+                    X[c] += z1 * s[c];
 
-                result = cost_logistic_regression_regularized(train_data, result_data, X0, lambda, out f2, out df2);
+                result = cost_logistic_regression_regularized(train_data, result_data, X, lambda, out f2, out df2);
 
                 if (result.has_errors())
-                    return result; 
+                    return result;
 
                 d2 = 0d;
-                for (c = 0; c < df2.Length; c++)
-                    d2 += df2[c]*s[c];
+                for (c = 0; c < feature_count; c++)
+                    d2 += df2[c] * s[c];
 
                 // initialize point 3 equal to point 1
                 f3 = f1;
@@ -437,19 +460,19 @@ namespace ml {
                             z2 = z3 / 2; // if we had a numerical problem then bisect
 
                         z2 = Math.Max(Math.Min(z2, INT * z3), (1 - INT) * z3);
-                        z1 += + z2; 
-                        for (c = 0; c < X0.Length; c++)
-                            X0[c] += z2 * s[c];
+                        z1 += z2; 
+                        for (c = 0; c < feature_count; c++)
+                            X[c] += z2 * s[c];
 
-                        result = cost_logistic_regression_regularized(train_data, result_data, X0, lambda, out f2, out df2);
+                        result = cost_logistic_regression_regularized(train_data, result_data, X, lambda, out f2, out df2);
 
                         if (result.has_errors())
                             return result;
                         
-                        i++; M--;
+                        M--;
                         d2 = 0d;
-                        for (c = 0; c < df2.Length; c++)
-                            d2 += df2[c]*s[c];
+                        for (c = 0; c < feature_count; c++)
+                            d2 += df2[c] * s[c];
 
                         z3 = z3 - z2;
                     }
@@ -480,23 +503,23 @@ namespace ml {
                     else if (z2 < -z3 * INT)
                         z2 = -z3 * INT;
                     else if (limit > -0.5 && z2 < (limit - z1) *(1.0 - INT))    // too close to limit?
-                        z2 = (limit - z1) *(1.0 - INT);
+                        z2 = (limit - z1) * (1.0 - INT);
 
                     f3 = f2; d3 = d2; z3 = -z2;                                 // set point 3 equal to point 2
                     z1 += z2;                                                   // update current estimates
-                    for (c = 0; c < X0.Length; c++)
-                        X0[c] += z2 * s[c]; 
+                    for (c = 0; c < feature_count; c++)
+                        X[c] += z2 * s[c]; 
 
-                    result = cost_logistic_regression_regularized(train_data, result_data, X0, lambda, out f2, out df2);
+                    result = cost_logistic_regression_regularized(train_data, result_data, X, lambda, out f2, out df2);
 
                     if (result.has_errors())
                         return result;
 
-                    M--; i++;
+                    M--;
 
                     d2 = 0d;
-                    for (c = 0; c < df2.Length; c++)
-                        d2 += df2[c]*s[c];
+                    for (c = 0; c < feature_count; c++)
+                        d2 += df2[c] * s[c];
                 }                                                               // end of line search
 
                 if (success) {                                                  // if line search succeeded
@@ -506,12 +529,10 @@ namespace ml {
                     A = B = C = 0;
 
                     // Polack-Ribiere direction
-                    for(c = 0; c < s.Length; c++) {
+                    for (c = 0; c < s.Length; c++) {
                         A += df1[c] * df1[c];
                         B += df2[c] * df2[c];
                         C += df1[c] * df2[c];
-
-                        s[c] = ((B - C)/ A) * s[c] - df2[c];
                     }
 
                     for(c = 0; c < s.Length; c++)
@@ -525,24 +546,26 @@ namespace ml {
                     }
 
                     d2 = 0d;
-                    for (c = 0; c < df2.Length; c++)
-                        d2 += df2[c] * s[c];
+                    for (c = 0; c < feature_count; c++)
+                        d2 += df1[c] * s[c];
 
                     if (d2 > 0) {
                         d2 = 0;
-                        for (c = 0; c < df1.Length; c++) {
+                        for (c = 0; c < feature_count; c++) {
                             s[c] = -df1[c];                 // new slope must be negative
                             d2 += -s[c] * s[c];             // otherwise use steepest direction
                         }
                     }
 
-                    z1 = z1 * Math.Min(RATIO, d1 / (d2 - double.MinValue));
+                    z1 = z1 * Math.Min(RATIO, d1 / (d2 + double.Epsilon));
                     d1 = d2;
                     ls_failed = false;
                 } else {
-                    X0 = X;         // could be not a real copy  
-                    f1 = f0;        // could be not a real copy 
-                    df1 = df0;      // could be not a real copy 
+                    for (c = 0; c < feature_count; c++) {
+                        X[c] = X0[c];
+                        df1[c] = df0[c];
+                    }
+                    f1 = f0;
 
                     if (ls_failed)
                         break;
@@ -562,6 +585,7 @@ namespace ml {
                     z1 = 1 / (1 - d1);
                     ls_failed = true;
                 }
+                i++;
             }
 
             new_theta = X0;
@@ -574,7 +598,7 @@ namespace ml {
         // lambda - cooeficient for regularization
         // h = sigmoid(X * theta) logistic regression hypothesis
         // J = (1/m .* (sum(-y .* log(h) .- (1 .- y) .* log(1 - h)))) + ((lambda/(2*m)) .* (sum(theta([2:size(theta)]) .^ 2)));
-        public static result_state cost_logistic_regression_regularized(in double[][] train_data, in double[] result_data, in double[] theta, in double lambda, out double cost, out double[] gradient) {
+        public static result_state cost_logistic_regression_regularized(double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient) {
             var result = new result_state();
             double temp = 0d, hypothesis = 0d, regularization = 0d;
             int i, t, train_data_count = train_data.Length;
@@ -633,7 +657,7 @@ namespace ml {
         // h = sigmoid(X * theta);
         // J = 1/m .* (sum(-y .* log(h) .- (1 .- y) .* log(1 - h)));
         // grad = 1/m .* sum((h .- y) .* X );
-        public static result_state cost_logistic_regression(in double[][] train_data, in double[] result_data, in double[] theta, out double cost, out double[] gradient) {
+        public static result_state cost_logistic_regression(double[][] train_data, double[] result_data, double[] theta, out double cost, out double[] gradient) {
             var result = new result_state();
             double temp = 0d, hypothesis = 0d;
             cost = 0d;
@@ -681,7 +705,7 @@ namespace ml {
         // hypothesis = theta'x = theta(0) + theta(x) x
         // J = sum((X*theta - y).^2) / (2*m);
         // 
-        public static result_state cost_linear_regression(in double[][] train_data, in double[] result_data, in double[] theta, out double cost) {
+        public static result_state cost_linear_regression(double[][] train_data, double[] result_data, double[] theta, out double cost) {
             var result = new result_state();
             var temp = 0d;
             cost = 0;
@@ -713,7 +737,7 @@ namespace ml {
         // ratio = alpha/m
         // t1 = theta(1) - ratio * sum( (X*theta - y) .* X(:,1) )
         // theta = (theta' - ((alpha/m) * sum( (X*theta - y) .* X )))';
-        public static result_state gradient_descent(in double[][] train_data, in double[] result_data, in double[] theta, in double alpha, in int iterations, out double[] after_theta, out double[] costs) {
+        public static result_state gradient_descent(double[][] train_data, double[] result_data, double[] theta, double alpha, int iterations, out double[] after_theta, out double[] costs) {
             var result = new result_state();
             after_theta = theta;
             costs = new double[iterations];
