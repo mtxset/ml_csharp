@@ -16,7 +16,7 @@ namespace ml {
             var parse_result = file_utils.parse_file(file_path, out train_data, out result_data);
 
             if (parse_result.has_errors()) {
-                Console.WriteLine(parse_result.get_errors());
+                Console.WriteLine(parse_result.all_errors_to_string());
                 return;
             }
 
@@ -26,7 +26,7 @@ namespace ml {
             var result = ml_funcs.cost_logistic_regression_regularized(train_data, result_data, initial_theta, lambda, out cost, out gradient);
 
             if (result.has_errors()) {
-                Console.WriteLine(result.get_errors());
+                Console.WriteLine(result.all_errors_to_string());
                 return;
             }
 
@@ -89,7 +89,7 @@ namespace ml {
             var parse_result = file_utils.parse_file(file_path, out train_data, out result_data);
 
             if (parse_result.has_errors()) {
-                Console.WriteLine(parse_result.get_errors());
+                Console.WriteLine(parse_result.all_errors_to_string());
                 return;
             }
 

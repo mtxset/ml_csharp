@@ -272,8 +272,61 @@ namespace ml {
             return result;
         }
 
+        public static double[][] matrix_insert_column(double[][] matrix, int column_index, double default_value = 1) {
+            int row, col;
+            var result = matrix_create(matrix.Length, matrix[0].Length + 1);
+            for (row = 0; row < matrix.Length; row++) {
+                for (col = 0; col < matrix[0].Length + 1; col++) {
+                    if (col == column_index)
+                        result[row][col] = default_value;
+                    else if (col < column_index)
+                        result[row][col] = matrix[row][col];
+                    else if (col > column_index)
+                        result[row][col] = matrix[row][col-1]; 
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary> 
+        ///      Unrolls all values into vector;
+        ///      by default takes by row: result = row[0] + row[1] .. otherwise result = col[0] + col[1] ..;
+        /// </summary>
+        public static double[] matrix_unroll(double[][] matrix, bool by_row = true) {
+            var result = new double[matrix.Length * matrix[0].Length];
+
+            int i = 0;
+
+            if (by_row) {
+                for (int row = 0; row < matrix.Length; row++)
+                for (int col = 0; col < matrix[0].Length; col++)
+                    result[i++] = matrix[row][col];
+            } else {
+                for (int col = 0; col < matrix[0].Length; col++)
+                for (int row = 0; row < matrix.Length; row++)
+                    result[i++] = matrix[row][col];
+            }
+
+            return result;
+        }
+
+        public static double[][] matrix_apply_function(double[][] matrix, Func<double, double> function) {
+            var result = matrix_create(matrix.Length, matrix[0].Length);
+
+            for (int row = 0; row < matrix.Length; row++)
+                for (int col = 0; col < matrix[0].Length; col++)
+                    result[row][col] = function(matrix[row][col]);
+                
+            return result;
+        }
+
         public static double sigmoid(double value) {
             return 1.0d / (1.0d + Math.Exp(-value));
+        }
+
+        public static double sigmoid_gradient(double value) {
+            return sigmoid(value) * (1 - sigmoid(value));
         }
         
         // sigma - standard deviation
@@ -315,8 +368,6 @@ namespace ml {
             return Math.Sqrt(sum / array.Length);
         }
 
-
-
         // Feature mapping function to polynomial features
         // Returns a new feature array with more features, comprising of 
         //   X1, X2, X1.^2, X2.^2, X1*X2, X1*X2.^2, etc..
@@ -355,12 +406,7 @@ namespace ml {
             predict_indices = new int[train_data.Length];
 
             // adding term to training data
-            for (row = 0; row < train_data.Length; row++) {
-                train_data_with_term[row][0] = 1; 
-                for (col = 1; col < train_data[0].Length; col++) {
-                    train_data_with_term[row][col] = train_data[row][col - 1]; // offsetting col = 1
-                }
-            }
+            train_data_with_term = matrix_insert_column(train_data, 0, 1);
 
             // X * all_theta'
             result = matrix_multiply(train_data_with_term, matrix_transpose(trained_theta), out temp_matrix);
@@ -379,6 +425,36 @@ namespace ml {
 
             return result;
         }
+
+        // same as nn_random_weights but with sin values instead of random
+        public static double[][] nn_debug_random_weights(int input_layer, int output_layer) {
+            var result = matrix_create(output_layer, input_layer);
+
+            int i = 1;
+            for (int row = 0; row < result.Length; row++)
+                for (int col = 0; col < result[0].Length; col++)
+                    result[row][col] = Math.Sin(i++) / 10; 
+
+            return result;
+        }
+
+        // returns matrix with randomly initialized theta for given layer count
+        // epsilonInit = 0.12;
+        // W = rand(L_out, 1 + L_in) * 2 * epsilonInit - epsilonInit;
+        public static double[][] nn_random_weights(int input_layer, int output_layer, int seed = -1) {
+            var result = matrix_create(output_layer, input_layer);
+            // double epsilon_init = 0.12;
+            double epsilon_init = Math.Sqrt(6) / Math.Sqrt(input_layer + output_layer);
+
+            Random random = (seed == -1) ? new Random() : new Random(seed);
+
+            for (int row = 0; row < result.Length; row++)
+                for (int col = 0; col < result[0].Length; col++)
+                    result[row][col] = random.NextDouble() * 2 * epsilon_init - epsilon_init;
+
+
+            return result;
+        } 
 
         // (C) Copyright 1999, 2000 & 2001, Carl Edward Rasmussen
         // Ported to C#
@@ -650,6 +726,34 @@ namespace ml {
             gradient[0] /= train_data_count;
             for (i = 1; i < gradient.Length; i++) // skipping first one
                 gradient[i] = (gradient[i] / train_data_count) + (lambda/train_data_count * theta[i]);
+
+            return result;
+        }
+
+        public static result_state nn_cost_two_layer(double[][] train_data, double[] result_data, double[][] theta1, double[][] theta2, int label_count, double lambda, out double cost, out double[][] theta1_gradient, out double[][] theta2_gradient) {
+            var result = new result_state();
+            double[][] a2, a1, a3;
+            cost = 0;
+            theta1_gradient = matrix_create(theta1.Length, theta1[0].Length);
+            theta2_gradient = matrix_create(theta2.Length, theta2[0].Length);
+
+            // forward propagation
+            a1 = matrix_insert_column(train_data, 0, 1); // adding term 
+            
+            // a2 = sigmoid((a1 * Theta1'));
+            result = matrix_multiply(a1, matrix_transpose(theta1), out a2);
+            a2 = matrix_apply_function(a2, sigmoid);
+            a2 = matrix_insert_column(a2, 0, 1); // adding term
+
+            // a3 = sigmoid((a2 * Theta2'));
+
+            result.combine_errors(matrix_multiply(a2, matrix_transpose(theta2), out a3));
+            a3 = matrix_apply_function(a3, sigmoid);
+            
+            if (result.has_errors()) {
+                Console.WriteLine(result.all_errors_to_string());
+                return result;
+            }
 
             return result;
         }

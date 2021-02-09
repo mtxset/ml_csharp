@@ -19,7 +19,7 @@ namespace ml {
             var parse_result = file_utils.parse_file(file_path, out train_data, out result_data);
 
             if (parse_result.has_errors()) {
-                Console.WriteLine(parse_result.get_errors());
+                Console.WriteLine(parse_result.all_errors_to_string());
                 return;
             }
 
@@ -41,7 +41,7 @@ namespace ml {
                     result = ml_funcs.rasmussen(train_data, label_result_data, initial_theta, lambda, max_iterations, out cost_progression[labels], out trained_theta[labels]);
 
                     if (result.has_errors()) {
-                        Console.WriteLine(result.get_errors());
+                        Console.WriteLine(result.all_errors_to_string());
                         return;
                     }
                 }
@@ -51,14 +51,14 @@ namespace ml {
                 result.combine_errors(write_vector_result);
 
                 if (result.has_errors()) {
-                    Console.WriteLine(result.get_errors());
+                    Console.WriteLine(result.all_errors_to_string());
                     return;
                 }
             } else {
                 result = ml_funcs.matrix_from_csv(trained_theta_file_path, out trained_theta);
 
                 if (result.has_errors()) {
-                    Console.WriteLine(result.get_errors());
+                    Console.WriteLine(result.all_errors_to_string());
                     return;
                 }
             }
@@ -66,7 +66,7 @@ namespace ml {
             result = ml_funcs.predict_one_vs_all(trained_theta, train_data, out predict_indices);
 
             if (result.has_errors()) {
-                Console.WriteLine(result.get_errors());
+                Console.WriteLine(result.all_errors_to_string());
                 return;
             }
 

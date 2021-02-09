@@ -26,7 +26,7 @@ namespace ml {
             var parse_result = file_utils.parse_file(file_path, out train_data, out result_data);
             
             if (parse_result.has_errors()) {
-                Console.WriteLine(parse_result.get_errors());
+                Console.WriteLine(parse_result.all_errors_to_string());
                 return;
             }
 
@@ -43,7 +43,7 @@ namespace ml {
             var file_read_result = utils.file_utils.parse_file(filepath, out train_data, out result_data);
 
             if (file_read_result.has_errors()) {
-                Console.WriteLine(file_read_result.get_errors());
+                Console.WriteLine(file_read_result.all_errors_to_string());
                 return null;
             }
 
@@ -67,7 +67,7 @@ namespace ml {
             var cost_result = ml_funcs.cost_linear_regression(train_data, result_data, new double[] {-3.6303, 1.1664}, out cost);
 
             if (cost_result.has_errors()) {
-                Console.WriteLine(cost_result.get_errors());
+                Console.WriteLine(cost_result.all_errors_to_string());
                 return null;
             }
 

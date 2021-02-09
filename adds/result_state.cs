@@ -30,7 +30,7 @@ namespace ml {
             return index > 0;
         }
 
-        public string get_errors() {
+        public string all_errors_to_string() {
             string result = "";
             for (var i = 0; i < index; i++)
                 result += error_list[i] + "\n";

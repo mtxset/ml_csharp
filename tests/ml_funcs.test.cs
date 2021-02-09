@@ -5,6 +5,63 @@ using System.IO;
 namespace ml {
     public static class ml_func_tests {
 
+        public static void test_sigmoid() {
+            Console.Write("sigmoid");
+            if (Math.Round(ml_funcs.sigmoid(0), 1) == 0.5)
+                Console.WriteLine(" .. OK");
+            else
+                Console.WriteLine(" .. FAILED");
+        }
+
+        public static void test_matrix_apply_function() {
+            Console.Write("test_"+System.Reflection.MethodBase.GetCurrentMethod().Name);
+            
+            var x = ml_funcs.matrix_create(2, 3);
+            x[0] = new double[] { 0, 1, 0.5 }; 
+            x[1] = new double[] { 0, -1, -0.5 };
+
+            x = ml_funcs.matrix_apply_function(x, ml_funcs.sigmoid_gradient); 
+            if (Math.Round(x[0][0], 4) == 0.2500 &&
+                Math.Round(x[0][1], 4) == 0.1966 &&
+                Math.Round(x[0][2], 4) == 0.2350 &&
+                Math.Round(x[1][0], 4) == 0.2500 &&
+                Math.Round(x[1][1], 4) == 0.1966 &&
+                Math.Round(x[1][2], 4) == 0.2350)
+                Console.WriteLine(" .. OK");
+            else
+                Console.WriteLine(" .. FAILED");
+        }
+
+        public static void test_sigmoid_gradient() {
+            // 1        -0.5        0       0.5      -1
+            // 0.1966   0.2350   0.2500   0.2350   0.1966
+            Console.Write("sigmoid_gradient");
+            if (Math.Round(ml_funcs.sigmoid_gradient(1), 4) == 0.1966 &&
+                Math.Round(ml_funcs.sigmoid_gradient(-0.5), 4) == 0.2350 &&
+                Math.Round(ml_funcs.sigmoid_gradient(0), 4) == 0.2500 &&
+                Math.Round(ml_funcs.sigmoid_gradient(-0.5), 4) == 0.2350 &&
+                Math.Round(ml_funcs.sigmoid_gradient(-1), 4) == 0.1966)
+                Console.WriteLine(" .. OK");
+            else
+                Console.WriteLine(" .. FAILED");
+        }
+
+        public static void test_matrix_insert_column() {
+            double insert_value = 0.999d;
+            var x = ml_funcs.matrix_create(2, 3);
+            x[0] = new double[] { 1.123, 2.12, 3.123 }; 
+            x[1] = new double[] { 4.123, 5.123, 6.123 };
+
+            var y = ml_funcs.matrix_insert_column(x, 0, insert_value);
+            var z = ml_funcs.matrix_insert_column(x, 3, insert_value);
+            Console.Write("test_matrix_insert_column");
+            if (y[0].Length == 4 && y[0][0] == insert_value && y[0][1] == x[0][0] &&
+                z[0].Length == 4 && z[0][3] == insert_value && z[0][0] == x[0][0])              
+                Console.WriteLine(" .. OK");
+            else
+                Console.WriteLine(" .. FAILED");
+        }
+
         public static void test_matrix_to_csv_and_back() {
             var result = new result_state();
             var x = ml_funcs.matrix_create(2, 3);
@@ -19,7 +76,7 @@ namespace ml {
             Console.Write("matrix_to_csv_and_back");
             if (result.has_errors()) {
                 Console.WriteLine(" .. FAILED");
-                Console.WriteLine(result.get_errors());
+                Console.WriteLine(result.all_errors_to_string());
                 return;
             }
 
@@ -27,7 +84,7 @@ namespace ml {
 
             if (result.has_errors()) {
                 Console.WriteLine(" .. FAILED");
-                Console.WriteLine(result.get_errors());
+                Console.WriteLine(result.all_errors_to_string());
                 return;
             }
 
@@ -117,6 +174,7 @@ namespace ml {
         public static void run_all_tests() {
             Stopwatch s = Stopwatch.StartNew();
             
+            test_matrix_insert_column();
             test_matrix_to_csv_and_back();
             test_matrix_compare_deep();
             test_transpose();
