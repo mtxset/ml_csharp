@@ -732,29 +732,70 @@ namespace ml {
 
         public static result_state nn_cost_two_layer(double[][] train_data, double[] result_data, double[][] theta1, double[][] theta2, int label_count, double lambda, out double cost, out double[][] theta1_gradient, out double[][] theta2_gradient) {
             var result = new result_state();
-            double[][] a2, a1, a3;
+            double sub_sum = 0, sum = 0, theta1_reg, theta2_reg;
+            double[][] a2, a1, a3, Y;
+            int train_data_count = train_data.Length, row, col, m, k;
             cost = 0;
             theta1_gradient = matrix_create(theta1.Length, theta1[0].Length);
             theta2_gradient = matrix_create(theta2.Length, theta2[0].Length);
 
-            // forward propagation
+            // feedforward propagation
             a1 = matrix_insert_column(train_data, 0, 1); // adding term 
             
-            // a2 = sigmoid((a1 * Theta1'));
+            // a2 = sigmoid(a1 * Theta1');
             result = matrix_multiply(a1, matrix_transpose(theta1), out a2);
             a2 = matrix_apply_function(a2, sigmoid);
             a2 = matrix_insert_column(a2, 0, 1); // adding term
 
-            // a3 = sigmoid((a2 * Theta2'));
-
+            // a3 = sigmoid(a2 * Theta2');
             result.combine_errors(matrix_multiply(a2, matrix_transpose(theta2), out a3));
             a3 = matrix_apply_function(a3, sigmoid);
-            
+
             if (result.has_errors()) {
                 Console.WriteLine(result.all_errors_to_string());
                 return result;
             }
 
+            // matrix for results
+            Y = matrix_create(train_data_count, label_count);
+            for (row = 0; row < train_data_count; row++)
+                Y[row][(int)result_data[row] - 1] = 1;
+            
+            // cost
+            // J = 1/m .* sum(sum(-Y .* log(h) .- (1 .- Y) .* log(1 - h)));
+            for (m = 0; m < train_data_count; m++) {
+                sub_sum = 0;
+                for (k = 0; k < label_count; k++) {
+                    sub_sum += -Y[m][k] * Math.Log(a3[m][k]) - (1 - Y[m][k]) * Math.Log(1 - a3[m][k]); 
+                }
+                sum += sub_sum;
+            }
+
+            cost = (1d / train_data_count) * sum;
+
+            // regularization
+            {
+                theta1_reg = 0;
+                for (row = 0; row < theta1.Length; row++) {
+                    sum = 0;
+                    for (col = 1; col < theta1[0].Length; col++) // skipping theta(0)
+                        sum += Math.Pow(theta1[row][col], 2);
+
+                    theta1_reg += sum;
+                }
+
+                theta2_reg = 0;
+                for (row = 0; row < theta2.Length; row++) {
+                    sum = 0;
+                    for (col = 1; col < theta2[0].Length; col++) // skipping theta(0)
+                        sum += Math.Pow(theta2[row][col], 2);
+
+                    theta2_reg += sum;
+                }
+            }
+
+            cost += lambda / (2d * train_data_count) * (theta1_reg + theta2_reg);
+            
             return result;
         }
 
