@@ -23,7 +23,7 @@ namespace ml {
                 return;
             
             foreach (var item in result.error_list)
-                add_error(item);
+                if (item != null) add_error(item);
         }
 
         public bool has_errors() {

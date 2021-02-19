@@ -5,6 +5,17 @@ using System.IO;
 namespace ml {
     public static class ml_func_tests {
 
+        public static void test_vector_insert() {
+            var x = new double[] { 1, 2, 3 };
+
+            var y = ml.ml_funcs.vector_insert(x, 0, -1);
+            Console.Write("vector_insert");
+            if (y.Length == x.Length + 1 && y[0] == -1 && y[1] == 1 && y[2] == 2 && y[3] == 3)
+                Console.WriteLine(" .. OK");
+            else
+                Console.WriteLine(" .. FAILED");
+        }
+
         public static void test_sigmoid() {
             Console.Write("sigmoid");
             if (Math.Round(ml_funcs.sigmoid(0), 1) == 0.5)

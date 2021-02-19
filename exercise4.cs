@@ -2,9 +2,9 @@ namespace ml {
     public static class exercise4 {
         public static void test_debug_nn() {
             const double lambda = 0;
-            const int input_layer_size = 3;     // 20x20 input images data
-            const int hidden_layer_size = 5;    // 25 hidden nn units
-            const int output_layer_size = 3;    // labels; digits from 0 to 9
+            const int input_layer_size = 3;     // input layer size
+            const int hidden_layer_size = 5;    // hidden nn units
+            const int output_layer_size = 3;    // labels
             const int debug_training_examples = 5;
 
             double cost;

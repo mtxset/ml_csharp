@@ -164,29 +164,6 @@ namespace ml {
             return result;
         }
 
-        public static double[][] matrix_subtract(double[][] x, double[][] y) {
-            var result = matrix_create(x.Length, x[0].Length);
-            int row, col;
-
-            for (row = 0; row < x.Length; row++) {
-                for (col = 0; col < x[0].Length; col++) {
-                    result[row][col] = x[row][col] - y[row][col]; 
-                }
-            }
-            return result;
-        }
-
-        public static double[][] matrix_add(double[][] x, double[][] y) {
-            var result = matrix_create(x.Length, x[0].Length);
-            int row, col;
-
-            for (row = 0; row < x.Length; row++) {
-                for (col = 0; col < x[0].Length; col++) {
-                    result[row][col] = x[row][col] + y[row][col]; 
-                }
-            }
-            return result;
-        }
 
         private static double[][] matrix_op_vector(double[][] x, double[] y, operation op) {
             var result = matrix_create(x.Length, x[0].Length);
@@ -214,19 +191,19 @@ namespace ml {
             return result;
         } 
 
-        public static double[][] matrix_divide_vector(double[][] x, double[] y) {
+        public static double[][] matrix_divide_vector_scalar(double[][] x, double[] y) {
             return matrix_op_vector(x, y, operation.divide);
         }
 
-        public static double[][] matrix_multiply_vector(double[][] x, double[] y) {
+        public static double[][] matrix_multiply_vector_scalar(double[][] x, double[] y) {
             return matrix_op_vector(x, y, operation.multiply);
         }
 
-        public static double[][] matrix_add_vector(double[][] x, double[] y) {
+        public static double[][] matrix_add_vector_scalar(double[][] x, double[] y) {
             return matrix_op_vector(x, y, operation.add);
         }
 
-        public static double[][] matrix_subtract_vector(double[][] x, double[] y) {
+        public static double[][] matrix_subtract_vector_scalar(double[][] x, double[] y) {
             return matrix_op_vector(x, y, operation.subtract);
         }
 
@@ -249,24 +226,117 @@ namespace ml {
         }
 
         public static result_state matrix_multiply(double[][] x, double[][] y, out double[][] output) {
+            return matrix_op_matrix(x, y, operation.multiply, out output);
+        }
+
+        public static result_state matrix_add(double[][] x, double[][] y, out double[][] output) {
+            return matrix_op_matrix(x, y, operation.add, out output);
+        }
+
+        public static result_state matrix_divide(double[][] x, double[][] y, out double[][] output) {
+            return matrix_op_matrix(x, y, operation.divide, out output);
+        }
+
+        public static result_state matrix_subtract(double[][] x, double[][] y, out double[][] output) {
+            return matrix_op_matrix(x, y, operation.subtract, out output);
+        }
+
+        private static result_state matrix_op_matrix(double[][] x, double[][] y, operation op, out double[][] output) {
             var result = new result_state();
-            output = matrix_create(x.Length, y[0].Length);
+            output = null;
             
-            if (x[0].Length != y.Length) {
-                result.add_error("The number of columns of the x matrix must equal the number of rows of the y matrix.");
-                return result;
+            if (op == operation.multiply || op == operation.divide) {
+                if (x[0].Length != y.Length) {
+                    result.add_error("The number of columns of the x matrix must equal the number of rows of the y matrix.");
+                    return result;
+                }
+            }
+            else {
+                if (x[0].Length != y[0].Length || x.Length != y.Length) {
+                    result.add_error("The number of rows of the x matrix must equal the number of columns of the y matrix.");
+                    return result;
+                }
             }
 
+            output = matrix_create(x.Length, y[0].Length);
             int row, col, i;
             double sum;
 
-            for (row = 0; row < x.Length; row++) {
-                for (col = 0; col < y[0].Length; col++) {
-                    sum = 0d;
-                    for (i = 0; i < x[0].Length; i++)
-                        sum += x[row][i] * y[i][col];
+            if (op == operation.multiply || op == operation.divide) {
+                for (row = 0; row < x.Length; row++) {
+                    for (col = 0; col < y[0].Length; col++) {
+                        sum = 0d;
+                        for (i = 0; i < x[0].Length; i++)
+                            if (op == operation.multiply)
+                                sum += x[row][i] * y[i][col];
+                            else if (op == operation.divide)
+                                sum += x[row][i] / y[i][col];
 
-                    output[row][col] = sum; 
+                        output[row][col] = sum; 
+                    }
+                }
+            } else {
+                for (row = 0; row < x.Length; row++) {
+                    for (col = 0; col < y[0].Length; col++) {
+                        if (op == operation.subtract)
+                            output[row][col] = x[row][col] - y[row][col];
+                        else if (op == operation.add)
+                            output[row][col] = x[row][col] + y[row][col];
+                    }
+                }
+            }
+            return result;
+        }
+
+        public static double[] vector_insert(double[] vector, int position, double value) {
+            var result = new double[vector.Length + 1];
+            int i;
+
+            for (i = 0; i < result.Length; i++) { 
+                if (i == position)
+                    result[position] = value; 
+                else if (i < position) 
+                    result[i] = vector[i]; 
+                else if (i > position)
+                    result[i] = vector[i - 1]; 
+            } 
+
+            return result;
+        }
+
+        public static double[][] matrix_remove_row(double[][] matrix, int row_index) {
+            int row, col;
+            var result = matrix_create(matrix.Length - 1, matrix[0].Length);
+            for (row = 0; row < result.Length; row++) {
+                if (row < row_index) {
+                    for (col = 0; col < result[0].Length; col++)
+                        result[row][col] = matrix[row][col];
+                }
+                else if (row >= row_index) {
+                    for (col = 0; col < result[0].Length; col++)
+                        result[row][col] = matrix[row+1][col];
+                }
+            }
+
+            return result;
+        }
+
+        public static double[][] matrix_insert_row(double[][] matrix, int row_index, double default_value = 1) {
+            int row, col;
+            var result = matrix_create(matrix.Length + 1, matrix[0].Length);
+
+            for (row = 0; row < result.Length; row++) {
+                if (row == row_index) {
+                    for (col = 0; col < result[0].Length; col++)
+                        result[row][col] = default_value;
+                }
+                else if (row < row_index) {
+                    for (col = 0; col < result[0].Length; col++)
+                        result[row][col] = matrix[row][col];
+                }
+                else if (row > row_index) {
+                    for (col = 0; col < result[0].Length; col++)
+                        result[row][col] = matrix[row-1][col];
                 }
             }
             return result;
@@ -344,9 +414,9 @@ namespace ml {
             }
 
             // (X - mean)
-            temp = matrix_subtract_vector(train_data, mean);
+            temp = matrix_subtract_vector_scalar(train_data, mean);
             // (X - mean) ./ sigma
-            norm_train_data = matrix_divide_vector(temp, sigma);
+            norm_train_data = matrix_divide_vector_scalar(temp, sigma);
         }
 
         public static double mean(double[] array) {
@@ -564,7 +634,7 @@ namespace ml {
 
                     A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3);                     // make cubic extrapolation
                     B = 3 * (f3 - f2) - z3 * (d3 + 2 * d2);
-                    z2 = -d2 * z3 *z3 / (B + Math.Sqrt(B*B - A* d2 * z3 *z3));  // num. error possible - ok!
+                    z2 = -d2 * z3 *z3 / (B + Math.Sqrt(B*B - A * d2 * z3 * z3));// num. error possible
 
                     if (!(B*B -A * d2 * z3*z3 >= 0) || double.IsNaN(z2) || double.IsInfinity(z2) || z2 < 0) {
                         if (limit < -0.5)                                       // if we have no upper limit
@@ -733,19 +803,19 @@ namespace ml {
         public static result_state nn_cost_two_layer(double[][] train_data, double[] result_data, double[][] theta1, double[][] theta2, int label_count, double lambda, out double cost, out double[][] theta1_gradient, out double[][] theta2_gradient) {
             var result = new result_state();
             double sub_sum = 0, sum = 0, theta1_reg, theta2_reg;
-            double[][] a2, a1, a3, Y;
-            int train_data_count = train_data.Length, row, col, m, k;
+            double[][] a2, a1, a3, Y, Y2, d2, d3, temp;
+            int train_data_count = train_data.Length, row, col, m, k, i;
             cost = 0;
             theta1_gradient = matrix_create(theta1.Length, theta1[0].Length);
             theta2_gradient = matrix_create(theta2.Length, theta2[0].Length);
 
             // feedforward propagation
-            a1 = matrix_insert_column(train_data, 0, 1); // adding term 
+            a1 = matrix_insert_column(train_data, 0, 1);                        // adding term 
             
             // a2 = sigmoid(a1 * Theta1');
             result = matrix_multiply(a1, matrix_transpose(theta1), out a2);
             a2 = matrix_apply_function(a2, sigmoid);
-            a2 = matrix_insert_column(a2, 0, 1); // adding term
+            a2 = matrix_insert_column(a2, 0, 1);                                // adding term
 
             // a3 = sigmoid(a2 * Theta2');
             result.combine_errors(matrix_multiply(a2, matrix_transpose(theta2), out a3));
@@ -795,7 +865,70 @@ namespace ml {
             }
 
             cost += lambda / (2d * train_data_count) * (theta1_reg + theta2_reg);
-            
+
+            for (i = 0; i < train_data_count; i++) {
+                a1 = matrix_create(1, train_data_count + 1);
+                a1[0] = train_data[i];
+                a1[0] = vector_insert(a1[0], 0, 1);         // adding term
+
+                result = matrix_multiply(theta1, matrix_transpose(a1), out a2);
+                a2 = matrix_apply_function(a2, sigmoid);
+                a2 = matrix_insert_row(a2, 0, 1);           // adding term
+
+                result.combine_errors(matrix_multiply(theta2, a2, out a3));
+                a3 = matrix_apply_function(a3, sigmoid);
+
+                Y2 = matrix_create(1, Y[0].Length);
+                Y2[0] = Y[i];
+                // Feedforward
+
+                // deltas
+                Y2 = matrix_transpose(Y2);
+                result.combine_errors(matrix_subtract(a3, Y2, out d3));
+                result.combine_errors(matrix_multiply(matrix_transpose(theta2), d3, out d2));
+
+                // sigmoidGradient(Theta1 * a1)];
+                result.combine_errors(matrix_multiply(theta1, matrix_transpose(a1), out temp));
+                temp = matrix_apply_function(temp, sigmoid_gradient);
+                temp = matrix_insert_row(temp, 0, 1);
+
+                if (temp.Length != d2.Length) {
+                    result.add_error("ERROR");
+                    return result;
+                }
+
+                for (m = 0; m < temp.Length; m++) {
+                    d2[m][0] = temp[m][0] * d2[m][0];
+                }
+                d2 = matrix_remove_row(d2, 0);
+
+                // delta update
+                result.combine_errors(matrix_multiply(d2, a1, out temp));
+                result.combine_errors(matrix_add(theta1_gradient, temp, out theta1_gradient));
+
+                result.combine_errors(matrix_multiply(d3, matrix_transpose(a2), out temp));
+                result.combine_errors(matrix_add(theta2_gradient, temp, out theta2_gradient));
+
+                if (result.has_errors())
+                    return result;
+            }
+
+            // adding regularization
+
+            for (row = 0; row < theta1_gradient.Length; row++)
+                for (col = 0; col < theta1_gradient[0].Length; col++) {
+                    theta1_gradient[row][col] /= train_data_count;
+                    if (col > 0) // skipping bias term
+                        theta1_gradient[row][col] += (lambda/m) * theta1_gradient[row][col];
+                }
+
+            for (row = 0; row < theta2_gradient.Length; row++)
+                for (col = 0; col < theta2_gradient[0].Length; col++) {
+                    theta2_gradient[row][col] /= train_data_count;
+                    if (col > 0) // skipping bias term
+                        theta2_gradient[row][col] += (lambda/m) * theta2_gradient[row][col];
+                }
+
             return result;
         }
 
