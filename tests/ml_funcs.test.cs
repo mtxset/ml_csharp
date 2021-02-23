@@ -5,6 +5,23 @@ using System.IO;
 namespace ml {
     public static class ml_func_tests {
 
+        public static void test_matrix_unflatten() {
+            var x = new double[] { 1, 2, 3 };
+            var xx = new double[] { 1, 2, 3, 4, 5, 6 };
+            var xxx = new double[] { 1, 2, 3, 4, 5, 6 };
+
+            var y = ml_funcs.matrix_unflatten(x, 1);
+            var yy = ml_funcs.matrix_unflatten(xx, 3);
+            var z = ml_funcs.matrix_unflatten(xxx, 1, 0, 3);
+            var zz = ml_funcs.matrix_unflatten(xxx, 1, 3);
+            Console.Write("matrix_unflatten");
+            if (y.Length == 3 && y[0][0] == 1 && y[1][0] == 2 && y[2][0] == 3 &&
+                yy.Length == 2 && yy[0].Length == 3 && yy[0][0] == 1 && yy[1][0] == 4)
+                Console.WriteLine(" .. OK");
+            else
+                Console.WriteLine(" .. FAILED");
+        }
+
         public static void test_vector_insert() {
             var x = new double[] { 1, 2, 3 };
 

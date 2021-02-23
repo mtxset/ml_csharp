@@ -5,7 +5,9 @@ namespace ml {
     public static class ml_funcs {
 
         private enum operation { add, subtract, multiply, divide };
-
+        
+        public delegate result_state cost_delegate(double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient);
+        
         public static bool matrix_compare_deep(double[][] x, double[][] y) {
             if (x.Length != y.Length || x[0].Length != y[0].Length)
                 return false;
@@ -359,11 +361,31 @@ namespace ml {
             return result;
         }
 
+        public static double[][] matrix_unflatten(double[] vector, int entries_per_row, int start_index = 0, int end_index = 0) {
+            if (end_index == 0)
+                end_index = vector.Length;
+
+            // assuming we provide correct entries_per_row (no remainder)
+            var result = matrix_create(end_index - start_index / entries_per_row, entries_per_row);
+            int i, row = 0, col = 0;
+
+            for (i = start_index; i < end_index; i++) {
+                result[row][col++] = vector[i];
+
+                if (col == entries_per_row) {
+                    col = 0;
+                    row++;
+                }
+            }
+
+            return result;
+        }
+
         /// <summary> 
-        ///      Unrolls all values into vector;
+        ///      Flattens all values into vector;
         ///      by default takes by row: result = row[0] + row[1] .. otherwise result = col[0] + col[1] ..;
         /// </summary>
-        public static double[] matrix_unroll(double[][] matrix, bool by_row = true) {
+        public static double[] matrix_flatten(double[][] matrix, bool by_row = true) {
             var result = new double[matrix.Length * matrix[0].Length];
 
             int i = 0;
@@ -531,7 +553,7 @@ namespace ml {
         // Minimize a continuous differentialble multivariate function
         // Conjugate gradient implementation https://en.wikipedia.org/wiki/Conjugate_gradient_method
         // fmincg
-        public static result_state rasmussen(double[][] train_data, double[] result_data, double[] initial_theta, double lambda, int max_iterations, out double[] cost_progress, out double[] new_theta) {
+        public static result_state rasmussen(double[][] train_data, double[] result_data, double[] initial_theta, double lambda, int max_iterations, cost_delegate cost_function, out double[] cost_progress, out double[] new_theta) {
             var result = new result_state();
             cost_progress = new double[max_iterations];
             bool ls_failed = false, success;
@@ -539,10 +561,10 @@ namespace ml {
             const double RHO = 0.01, SIG = 0.5, INT = 0.1, EXT = 3.0, MAX = 20, RATIO = 100;
             double f1, f2, f3, d1 = 0d, d2, d3, z1 = 0d, z2, z3, f0, limit, A, B, C, temp, M;
             double[] df1, df0 = new double[feature_count], df2, s, X0 = new double[feature_count], X = new double[feature_count];
-            new_theta = X0;
+            new_theta = null;
 
             // value(cost) and gradient
-            result = cost_logistic_regression_regularized(train_data, result_data, X, lambda, out f1, out df1);
+            result = cost_function(train_data, result_data, X, lambda, out f1, out df1);
 
             if (result.has_errors())
                 return result;
@@ -570,7 +592,7 @@ namespace ml {
                 for (c = 0; c < X.Length; c++)
                     X[c] += z1 * s[c];
 
-                result = cost_logistic_regression_regularized(train_data, result_data, X, lambda, out f2, out df2);
+                result = cost_function(train_data, result_data, X, lambda, out f2, out df2);
 
                 if (result.has_errors())
                     return result;
@@ -610,7 +632,7 @@ namespace ml {
                         for (c = 0; c < feature_count; c++)
                             X[c] += z2 * s[c];
 
-                        result = cost_logistic_regression_regularized(train_data, result_data, X, lambda, out f2, out df2);
+                        result = cost_function(train_data, result_data, X, lambda, out f2, out df2);
 
                         if (result.has_errors())
                             return result;
@@ -656,7 +678,7 @@ namespace ml {
                     for (c = 0; c < feature_count; c++)
                         X[c] += z2 * s[c]; 
 
-                    result = cost_logistic_regression_regularized(train_data, result_data, X, lambda, out f2, out df2);
+                    result = cost_function(train_data, result_data, X, lambda, out f2, out df2);
 
                     if (result.has_errors())
                         return result;
@@ -796,6 +818,14 @@ namespace ml {
             gradient[0] /= train_data_count;
             for (i = 1; i < gradient.Length; i++) // skipping first one
                 gradient[i] = (gradient[i] / train_data_count) + (lambda/train_data_count * theta[i]);
+
+            return result;
+        }
+
+        public static result_state nn_cost(double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient) {
+            var result = new result_state();
+            cost = 0;
+            gradient = null;
 
             return result;
         }

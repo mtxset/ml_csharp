@@ -38,7 +38,7 @@ namespace ml {
                         label_result_data[label_train_count * labels + i] = 1;
 
                     initial_theta = new double[train_data[0].Length + 1];
-                    result = ml_funcs.rasmussen(train_data, label_result_data, initial_theta, lambda, max_iterations, out cost_progression[labels], out trained_theta[labels]);
+                    result = ml_funcs.rasmussen(train_data, label_result_data, initial_theta, lambda, max_iterations, ml_funcs.cost_logistic_regression_regularized, out cost_progression[labels], out trained_theta[labels]);
 
                     if (result.has_errors()) {
                         Console.WriteLine(result.all_errors_to_string());
