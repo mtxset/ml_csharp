@@ -1,5 +1,5 @@
 /*
-I have a simple problem and solution, but decision may have ramifications
+I have a simple problem and a solution, but decision may have ramifications
 
 I need to create matrix stuff; there are few ways of doing it (c#):
 1. double[][], arrays of arrays - all languages have arrays, no abstractions, probably won't change ever, usage is different in every language, memory and clock wise is good
@@ -8,7 +8,7 @@ I need to create matrix stuff; there are few ways of doing it (c#):
 
 currently I write them in c#, but I may at some point rewrite it in python or c/cpp
 
-it's such a simple thing but it's data structure which will be used everywhere above, thus changing it at some point is tragic 
+it's such a simple thing but it's data structure which will be used everywhere above, thus changing it at some point will introduce tragical amount of boring work 
 */
 namespace ml {
     public struct matrix_row {

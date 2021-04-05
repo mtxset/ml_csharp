@@ -33,7 +33,7 @@ namespace ml {
             ml_funcs.feature_normalize(train_data, out mean, out sigma, out norm_train_data);
 
             double[] after_theta, costs;
-            var theta = ml_funcs.gradient_descent(norm_train_data, result_data, new double[] { 0, 0, 0}, 0.3, 400, out after_theta, out costs);
+            var theta = ml_funcs.gradient_descent(norm_train_data, result_data, new double[] { 0, 0, 0 }, 0.3, 400, out after_theta, out costs);
         }
 
         public static IPlotModel plot_data1() {

@@ -28,7 +28,7 @@ namespace ml {
             trained_theta = ml_funcs.matrix_create(10, train_data[0].Length);
             cost_progression = ml_funcs.matrix_create(10, 10);
             
-            // don't train over and over again
+            // don't retrain
             // delete file if you want to retrain
             if (!File.Exists(trained_theta_file_path) || force_training) {
                 for (labels = 0; labels < 10; labels++) {

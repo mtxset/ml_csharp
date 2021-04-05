@@ -11,8 +11,9 @@ namespace ml {
             const int hidden_layer_size = 5;    // hidden nn units
             const int output_layer_size = 3;    // labels
             const int debug_training_examples = 5;
+            const int max_iterations = 10;
 
-            double cost;
+            double[] unrolled_theta = null, trained_theta = null, cost = null;
             double[][] theta1_gradient, theta2_gradient;
 
             var random_theta_1 = ml_funcs.matrix_transpose(ml_funcs.nn_debug_random_weights(hidden_layer_size, input_layer_size + 1));
@@ -28,18 +29,20 @@ namespace ml {
 
                 // 1. convert theta back to neural network layers
                 // 2. pass to nn_cost_two_layer neural network thetas
-                // 3. we get theta1, theta2 gradients we flattan them into gradient 
+                // 3. we get theta1, theta2 gradients then we flattan them into gradient
 
                 var unroll_theta_1 = ml_funcs.matrix_flatten(random_theta_1);
                 var unroll_theta_2 = ml_funcs.matrix_flatten(random_theta_2);
-                var unrolled_theta = new double[unroll_theta_1.Length + unroll_theta_2.Length];
+                unrolled_theta = new double[unroll_theta_1.Length + unroll_theta_2.Length];
                 unroll_theta_1.CopyTo(unrolled_theta, 0);
                 unroll_theta_2.CopyTo(unrolled_theta, unroll_theta_1.Length);
 
                 return result;
             };
 
-            ml_funcs.nn_cost_two_layer(train_data, result_data, random_theta_1, random_theta_2, output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
+            // var result = ml_funcs.rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations, nn_cost_delegate, out cost, out trained_theta);
+
+            // ml_funcs.nn_cost_two_layer(train_data, result_data, random_theta_1, random_theta_2, output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
         }
     }
 }

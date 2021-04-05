@@ -2,40 +2,40 @@ using System;
 using System.IO;
 
 namespace ml {
-    public static class ml_funcs {
+	public static class ml_funcs {
 
-        private enum operation { add, subtract, multiply, divide };
-        
-        public delegate result_state cost_delegate(double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient);
-        
-        public static bool matrix_compare_deep(double[][] x, double[][] y) {
-            if (x.Length != y.Length || x[0].Length != y[0].Length)
-                return false;
+  	private enum operation { add, subtract, multiply, divide };
 
-            int row, col;
+  	public delegate result_state cost_delegate(double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient);
 
-            for (row = 0; row < x.Length; row++)
-                for (col = 0; col < y[0].Length; col++)
-                    if (x[row][col] != y[row][col])
-                        return false;
+    public static bool matrix_compare_deep(double[][] x, double[][] y) {
+			if (x.Length != y.Length || x[0].Length != y[0].Length)
+				return false;
 
-            return true;
-        }
+			int row, col;
 
-        public static void min_value(double[] array, out double max_value, out int max_index) {
-            double previous_value = array[0];
-            max_index = 0;
-            max_value = array[0];
+			for (row = 0; row < x.Length; row++)
+				for (col = 0; col < y[0].Length; col++)
+					if (x[row][col] != y[row][col])
+						return false;
 
-            for (int i = 0; i < array.Length; ++i) {
-                max_value = Math.Min(max_value, array[i]);
-                
-                if (previous_value != max_value)
-                    max_index = i;
+			return true;
+		}
 
-                previous_value = max_value;
-            }
-        } 
+		public static void min_value(double[] array, out double max_value, out int max_index) {
+			double previous_value = array[0];
+			max_index = 0;
+			max_value = array[0];
+
+			for (int i = 0; i < array.Length; ++i) {
+				max_value = Math.Min(max_value, array[i]);
+
+				if (previous_value != max_value)
+					max_index = i;
+
+				previous_value = max_value;
+			}
+		}
 
         public static void max_value(double[] array, out double max_value, out int max_index) {
             double previous_value = array[0];
@@ -44,7 +44,7 @@ namespace ml {
 
             for (int i = 0; i < array.Length; ++i) {
                 max_value = Math.Max(max_value, array[i]);
-                
+
                 if (previous_value != max_value)
                     max_index = i;
 
@@ -87,7 +87,7 @@ namespace ml {
                     }
                 }
             }
-            
+
             return result;
         }
 
@@ -101,7 +101,7 @@ namespace ml {
                 }
             }
 
-            string buffer = ""; 
+            string buffer = "";
 
             for (int i = 0; i < vector.Length; i++)
                 buffer += vector[i].ToString() + ",";
@@ -150,7 +150,7 @@ namespace ml {
                         result[r][c] = prefill;
                 }
             }
-            
+
             return result;
         }
 
@@ -191,7 +191,7 @@ namespace ml {
             }
 
             return result;
-        } 
+        }
 
         public static double[][] matrix_divide_vector_scalar(double[][] x, double[] y) {
             return matrix_op_vector(x, y, operation.divide);
@@ -209,12 +209,12 @@ namespace ml {
             return matrix_op_vector(x, y, operation.subtract);
         }
 
-        public static double[] matrix_column_to_vector(double[][] matrix, int column) { 
+        public static double[] matrix_column_to_vector(double[][] matrix, int column) {
             var result = new double[matrix.Length];
 
             for (var i = 0; i < matrix.Length; i++)
                 result[i] = matrix[i][column];
-    
+
             return result;
         }
 
@@ -246,7 +246,7 @@ namespace ml {
         private static result_state matrix_op_matrix(double[][] x, double[][] y, operation op, out double[][] output) {
             var result = new result_state();
             output = null;
-            
+
             if (op == operation.multiply || op == operation.divide) {
                 if (x[0].Length != y.Length) {
                     result.add_error("The number of columns of the x matrix must equal the number of rows of the y matrix.");
@@ -274,7 +274,7 @@ namespace ml {
                             else if (op == operation.divide)
                                 sum += x[row][i] / y[i][col];
 
-                        output[row][col] = sum; 
+                        output[row][col] = sum;
                     }
                 }
             } else {
@@ -294,14 +294,14 @@ namespace ml {
             var result = new double[vector.Length + 1];
             int i;
 
-            for (i = 0; i < result.Length; i++) { 
+            for (i = 0; i < result.Length; i++) {
                 if (i == position)
-                    result[position] = value; 
-                else if (i < position) 
-                    result[i] = vector[i]; 
+                    result[position] = value;
+                else if (i < position)
+                    result[i] = vector[i];
                 else if (i > position)
-                    result[i] = vector[i - 1]; 
-            } 
+                    result[i] = vector[i - 1];
+            }
 
             return result;
         }
@@ -354,7 +354,7 @@ namespace ml {
                     else if (col < column_index)
                         result[row][col] = matrix[row][col];
                     else if (col > column_index)
-                        result[row][col] = matrix[row][col-1]; 
+                        result[row][col] = matrix[row][col-1];
                 }
             }
 
@@ -381,7 +381,7 @@ namespace ml {
             return result;
         }
 
-        /// <summary> 
+        /// <summary>
         ///      Flattens all values into vector;
         ///      by default takes by row: result = row[0] + row[1] .. otherwise result = col[0] + col[1] ..;
         /// </summary>
@@ -409,7 +409,7 @@ namespace ml {
             for (int row = 0; row < matrix.Length; row++)
                 for (int col = 0; col < matrix[0].Length; col++)
                     result[row][col] = function(matrix[row][col]);
-                
+
             return result;
         }
 
@@ -420,7 +420,7 @@ namespace ml {
         public static double sigmoid_gradient(double value) {
             return sigmoid(value) * (1 - sigmoid(value));
         }
-        
+
         // sigma - standard deviation
         // X_norm = (X - mean) ./ sigma;
         public static void feature_normalize(double[][] train_data, out double[] mean, out double[] sigma, out double[][] norm_train_data) {
@@ -447,7 +447,7 @@ namespace ml {
             for (var i = 0; i < array.Length; ++i)
                 sum += array[i];
 
-            return sum/array.Length; 
+            return sum/array.Length;
         }
 
         public static double stadard_deviation(double[] array) {
@@ -461,7 +461,7 @@ namespace ml {
         }
 
         // Feature mapping function to polynomial features
-        // Returns a new feature array with more features, comprising of 
+        // Returns a new feature array with more features, comprising of
         //   X1, X2, X1.^2, X2.^2, X1*X2, X1*X2.^2, etc..
         public static result_state map_feature(double[] train_data_x, double[] train_data_y, out double[][] train_data, int degree = 6) {
             var result = new result_state();
@@ -485,7 +485,7 @@ namespace ml {
             }
 
             return result;
-        } 
+        }
 
         // [p_max, p_index] = max(sigmoid((X * all_theta')),[], 2);
         public static result_state predict_one_vs_all(double[][] trained_theta, double[][] train_data, out int[] predict_indices) {
@@ -503,7 +503,7 @@ namespace ml {
             // X * all_theta'
             result = matrix_multiply(train_data_with_term, matrix_transpose(trained_theta), out temp_matrix);
 
-            if (result.has_errors()) 
+            if (result.has_errors())
                  return result;
 
             // sigmoid(X * all_theta')
@@ -525,7 +525,7 @@ namespace ml {
             int i = 1;
             for (int row = 0; row < result.Length; row++)
                 for (int col = 0; col < result[0].Length; col++)
-                    result[row][col] = Math.Sin(i++) / 10; 
+                    result[row][col] = Math.Sin(i++) / 10;
 
             return result;
         }
@@ -546,7 +546,7 @@ namespace ml {
 
 
             return result;
-        } 
+        }
 
         // (C) Copyright 1999, 2000 & 2001, Carl Edward Rasmussen
         // Ported to C#
@@ -609,26 +609,26 @@ namespace ml {
                 M = MAX;
                 success = false;
                 limit = -1;
-                z2 = 0d; 
+                z2 = 0d;
                 A = B = C = 0;
- 
+
                 while (true) {
                     while ((f2 > f1 + z1 * RHO * d1 || d2 > -SIG * d1) && M > 0) {
                         limit = z1;
                         if (f2 > f1) // quadratic fit
                             z2 = z3 - (0.5 * d3 * z3 * z3) / (d3 * z3 + f2 - f3);
-                        else { 
+                        else {
                             // cubic fit
                             A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3);
                             B = 3 * (f3 - f2) -z3* (d3 + 2 * d2);
-                            z2 = (Math.Sqrt(B * B - A * d2 * z3 *z3 ) - B) / A; 
+                            z2 = (Math.Sqrt(B * B - A * d2 * z3 *z3 ) - B) / A;
                         }
 
                         if (double.IsNaN(z2) || double.IsInfinity(z2))
                             z2 = z3 / 2; // if we had a numerical problem then bisect
 
                         z2 = Math.Max(Math.Min(z2, INT * z3), (1 - INT) * z3);
-                        z1 += z2; 
+                        z1 += z2;
                         for (c = 0; c < feature_count; c++)
                             X[c] += z2 * s[c];
 
@@ -636,7 +636,7 @@ namespace ml {
 
                         if (result.has_errors())
                             return result;
-                        
+
                         M--;
                         d2 = 0d;
                         for (c = 0; c < feature_count; c++)
@@ -648,7 +648,7 @@ namespace ml {
                     if (f2 > f1 + z1 * RHO * d1 || d2 > -SIG * d1)
                         break;
                     else if (d2 > SIG * d1) {
-                        success = true; 
+                        success = true;
                         break;
                     }
                     else if (M == 0)
@@ -676,7 +676,7 @@ namespace ml {
                     f3 = f2; d3 = d2; z3 = -z2;                                 // set point 3 equal to point 2
                     z1 += z2;                                                   // update current estimates
                     for (c = 0; c < feature_count; c++)
-                        X[c] += z2 * s[c]; 
+                        X[c] += z2 * s[c];
 
                     result = cost_function(train_data, result_data, X, lambda, out f2, out df2);
 
@@ -772,7 +772,7 @@ namespace ml {
             int i, t, train_data_count = train_data.Length;
             cost = 0d;
             gradient = new double[theta.Length];
-            var gradient_regularization = new double[theta.Length]; 
+            var gradient_regularization = new double[theta.Length];
 
             if (train_data.Length != result_data.Length)
                 result.add_error("Arrays train_data and result_data should have same amount of entries");
@@ -780,7 +780,7 @@ namespace ml {
             if (train_data[0].Length != theta.Length-1)
                 result.add_error("train_data column count should have one less size of theta size");
 
-            if (result.has_errors()) 
+            if (result.has_errors())
                 return result;
 
             for (i = 0; i < train_data.Length; i++) {
@@ -795,13 +795,13 @@ namespace ml {
 
                 // (lambda/(2*m)) * sum(..)
                 regularization = lambda/(2*train_data_count) * regularization;
-                
+
                 // h = sigmoid(X * theta);
                 hypothesis = sigmoid(temp);
                 // sum(-y .* log(h) .- (1 .- y) .* log(1 - h))
                 cost += -result_data[i] * Math.Log(hypothesis) - (1 - result_data[i]) * Math.Log(1 - hypothesis);
 
-                if (i > 0)  // we ignore bias unit (1) of theta when we regularize 
+                if (i > 0)  // we ignore bias unit (1) of theta when we regularize
                     cost += regularization;
 
                 gradient[0] += hypothesis - result_data[i]; // x(1) term is 1
@@ -840,8 +840,8 @@ namespace ml {
             theta2_gradient = matrix_create(theta2.Length, theta2[0].Length);
 
             // feedforward propagation
-            a1 = matrix_insert_column(train_data, 0, 1);                        // adding term 
-            
+            a1 = matrix_insert_column(train_data, 0, 1);                        // adding term
+
             // a2 = sigmoid(a1 * Theta1');
             result = matrix_multiply(a1, matrix_transpose(theta1), out a2);
             a2 = matrix_apply_function(a2, sigmoid);
@@ -860,13 +860,13 @@ namespace ml {
             Y = matrix_create(train_data_count, label_count);
             for (row = 0; row < train_data_count; row++)
                 Y[row][(int)result_data[row] - 1] = 1;
-            
+
             // cost
             // J = 1/m .* sum(sum(-Y .* log(h) .- (1 .- Y) .* log(1 - h)));
             for (m = 0; m < train_data_count; m++) {
                 sub_sum = 0;
                 for (k = 0; k < label_count; k++) {
-                    sub_sum += -Y[m][k] * Math.Log(a3[m][k]) - (1 - Y[m][k]) * Math.Log(1 - a3[m][k]); 
+                    sub_sum += -Y[m][k] * Math.Log(a3[m][k]) - (1 - Y[m][k]) * Math.Log(1 - a3[m][k]);
                 }
                 sum += sub_sum;
             }
@@ -978,21 +978,21 @@ namespace ml {
             if (train_data[0].Length != theta.Length-1)
                 result.add_error("train_data should have one less size of theta entries");
 
-            if (result.has_errors()) 
+            if (result.has_errors())
                 return result;
 
             for (i = 0; i < train_data.Length; ++i) {
-                
+
                 // X * theta
                 temp = theta[0];
                 for (t = 1; t < train_data[0].Length + 1; t++)
                     temp += theta[t] * train_data[i][t - 1]; // skipping x(1)
-                
+
                 // h = sigmoid(X * theta);
                 hypothesis = sigmoid(temp);
                 // sum(-y .* log(h) .- (1 .- y) .* log(1 - h))
                 cost += -result_data[i] * Math.Log(hypothesis) - (1 - result_data[i]) * Math.Log(1 - hypothesis);
-                
+
                 // sum((h .- y) .* X; // full formula: grad = 1/m .* sum((h .- y) .* X );
                 gradient[0] += hypothesis - result_data[i];
                 for (t = 1; t < theta.Length; t++) // skipping x(1)
@@ -1012,7 +1012,7 @@ namespace ml {
         // cost function for linear regression J(theta) = 1/2*m * sum( hypothesis(x) - y)^2
         // hypothesis = theta'x = theta(0) + theta(x) x
         // J = sum((X*theta - y).^2) / (2*m);
-        // 
+        //
         public static result_state cost_linear_regression(double[][] train_data, double[] result_data, double[] theta, out double cost) {
             var result = new result_state();
             var temp = 0d;
@@ -1024,14 +1024,14 @@ namespace ml {
             if (train_data[0].Length != theta.Length-1)
                 result.add_error("train_data should have one less size of theta entries");
 
-            if (result.has_errors()) 
+            if (result.has_errors())
                 return result;
 
             for (var i = 0; i < train_data.Length; i++) {
                 temp = theta[0];
                 for (var t = 1; t < train_data[0].Length + 1; t++)
                     temp += theta[t] * train_data[i][t - 1]; // skipping x(1)
-                    
+
                 temp -= result_data[i];
                 temp *= temp;
                 cost += temp;
@@ -1060,20 +1060,20 @@ namespace ml {
             if (train_data[0].Length != theta.Length-1)
                 result.add_error("train_data should have one less size of theta entries");
 
-            if (result.has_errors()) 
+            if (result.has_errors())
                 return result;
-            
+
             for (iter = 0; iter < iterations; iter++) {
                 for (i = 0; i < train_data.Length; i++) {
                     temp = theta[0];
 
                     // X*theta
                     for (t = 1; t < train_data[0].Length + 1; t++)
-                        temp += theta[t] * train_data[i][t - 1]; // skipping intercept term x(1) 
-                    
+                        temp += theta[t] * train_data[i][t - 1]; // skipping intercept term x(1)
+
                     // X*theta - y
                     temp -= result_data[i];
-                    
+
                     // (X*theta - y) .* X
                     sub_temp[i][0] = temp;
                     for (t = 1; t < theta.Length; t++)
@@ -1090,7 +1090,7 @@ namespace ml {
 
                     after_theta[i] = after_theta[i] - ratio * temp;
                 }
-                
+
                 cost_linear_regression(train_data, result_data, after_theta, out costs[iter]);
             }
 

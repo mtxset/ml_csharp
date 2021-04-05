@@ -11,6 +11,10 @@
 2. refactor functions and add all arithmetic and scalar, so that opeartion happens through switch and perform matrix length checks
 4. write tests for ml, matrix functions
 6. writing formulas in code is awful, create a folder with images and add link in comments
-7. need some functions to perfrom dimenion and length checks on matrices (cost_linear_regression length checks) 
+7. need some functions to perfrom dimenion and length checks on matrices (cost_linear_regression length checks)
 8. write tests with non 0 theta and add tests for feature_normalize, gradient_descent from ex1
 9. write simple compression algorithm for numbers
+10. comment every function
+
+
+!!! rewrite matrix_unflatten
