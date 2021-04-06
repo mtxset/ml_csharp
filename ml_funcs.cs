@@ -362,23 +362,22 @@ namespace ml {
         }
 
         public static double[][] matrix_unflatten(double[] vector, int entries_per_row, int start_index = 0, int end_index = 0) {
-            if (end_index == 0)
-                end_index = vector.Length;
+					if (end_index == 0)
+						end_index = vector.Length - 1;
 
-            // assuming we provide correct entries_per_row (no remainder)
-            var result = matrix_create(end_index - start_index / entries_per_row, entries_per_row);
-            int i, row = 0, col = 0;
+					double[][] result = matrix_create((end_index - start_index + 1) / entries_per_row, entries_per_row);
+					int i, row = 0, entries = 0;
 
-            for (i = start_index; i < end_index; i++) {
-                result[row][col++] = vector[i];
+					for (i = start_index; i < end_index - start_index + 1; i++) {
+						result[row][entries++] = vector[i];
 
-                if (col == entries_per_row) {
-                    col = 0;
-                    row++;
-                }
-            }
+						if (entries == entries_per_row) {
+							entries = 0;
+							row++;
+						}
+					}
 
-            return result;
+					return result;
         }
 
         /// <summary>
