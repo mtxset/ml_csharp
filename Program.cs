@@ -6,91 +6,92 @@ using OxyPlot.Core.Drawing;
 using OxyPlot.Series;
 
 namespace ml {
-    class Program {
-        static void Main(string[] args) {
-            ml_func_tests.test_matrix_unflatten();
-            //exercise4.test_debug_nn();
-            //ml_func_tests.run_all_tests();
-            // var outputToFile = "./images/ex1.png";
+	class Program {
+		static void Main(string[] args) {
+			//ml_func_tests.test_matrix_unflatten();
+			exercise4.test_debug_nn();
+			//exercise4.test_flatten_unflatten();
+			//ml_func_tests.run_all_tests();
+			// var outputToFile = "./images/ex1.png";
 
-            // var width = 1024;
-            // var height = 768;
-            // var background = OxyColors.LightGray;
-            // var resolution = 96d;
+			// var width = 1024;
+			// var height = 768;
+			// var background = OxyColors.LightGray;
+			// var resolution = 96d;
 
-            // var model = exercise1.plot_data1();
+			// var model = exercise1.plot_data1();
 
-            // // export to file using static methods
-            // PngExporter.Export(model, outputToFile, width, height, background, resolution);
-        }
+			// // export to file using static methods
+			// PngExporter.Export(model, outputToFile, width, height, background, resolution);
+		}
 
-        private static void test_transpose() {
-            var matrix = ml_funcs.matrix_create(10, 20, 0);
-            var trasponse_matrix = ml_funcs.matrix_transpose(matrix);
-        }
-	
-        private static IPlotModel build_scatter() {
-            var model = new PlotModel { Title = "ScatterSeries" };
-            var scatterSeries = new ScatterSeries { MarkerType = MarkerType.Cross };
-            var r = new Random(314);
-            for (int i = 0; i < 100; i++)
-            {
-                var x = r.NextDouble();
-                var y = r.NextDouble();
-                var size = 5;
-                var colorValue = r.Next(0, 10);
-                scatterSeries.Points.Add(new ScatterPoint(x, y, size, 5));
-            }
+		private static void test_transpose() {
+			var matrix = ml_funcs.matrix_create(10, 20, 0);
+			var trasponse_matrix = ml_funcs.matrix_transpose(matrix);
+		}
 
-            model.Series.Add(scatterSeries);
-            model.Axes.Add(new LinearColorAxis { Position = AxisPosition.Right, Palette = OxyPalettes.Hue(10) });
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Minimum = -20, Maximum = 80});
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Minimum = -10, Maximum = 10});
+		private static IPlotModel build_scatter() {
+			var model = new PlotModel { Title = "ScatterSeries" };
+			var scatterSeries = new ScatterSeries { MarkerType = MarkerType.Cross };
+			var r = new Random(314);
+			for (int i = 0; i < 100; i++)
+			{
+				var x = r.NextDouble();
+				var y = r.NextDouble();
+				var size = 5;
+				var colorValue = r.Next(0, 10);
+				scatterSeries.Points.Add(new ScatterPoint(x, y, size, 5));
+			}
 
-            return model;
-        }
+			model.Series.Add(scatterSeries);
+			model.Axes.Add(new LinearColorAxis { Position = AxisPosition.Right, Palette = OxyPalettes.Hue(10) });
+			model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Minimum = -20, Maximum = 80});
+			model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Minimum = -10, Maximum = 10});
 
-        private static IPlotModel BuildPlotModel() {
-            var rand = new Random(21);
+			return model;
+		}
 
-            var model = new PlotModel { Title = "Cake Type Popularity" };
+		private static IPlotModel BuildPlotModel() {
+			var rand = new Random(21);
 
-            var cakePopularity = Enumerable.Range(1, 5).Select(i => rand.NextDouble()).ToArray();
-            var sum = cakePopularity.Sum();
-            var barItems = cakePopularity.Select(cp => RandomBarItem(cp, sum)).ToArray();
-            var barSeries = new BarSeries
-            {
-                ItemsSource = barItems,
-                LabelPlacement = LabelPlacement.Base,
-                LabelFormatString = "{0:.00}%"
-            };
+			var model = new PlotModel { Title = "Cake Type Popularity" };
 
-            model.Series.Add(barSeries);
+			var cakePopularity = Enumerable.Range(1, 5).Select(i => rand.NextDouble()).ToArray();
+			var sum = cakePopularity.Sum();
+			var barItems = cakePopularity.Select(cp => RandomBarItem(cp, sum)).ToArray();
+			var barSeries = new BarSeries
+			{
+				ItemsSource = barItems,
+				LabelPlacement = LabelPlacement.Base,
+				LabelFormatString = "{0:.00}%"
+			};
 
-            model.Axes.Add(new CategoryAxis
-            {
-                Position = AxisPosition.Left,
-                Key = "CakeAxis",
-                ItemsSource = new[]
-                {
-                    "Apple cake",
-                    "Baumkuchen",
-                    "Bundt Cake",
-                    "Chocolate cake",
-                    "Carrot cake"
-                }
-            });
-            return model;
-        }
+			model.Series.Add(barSeries);
 
-        private static BarItem RandomBarItem(double cp, double sum)
-           => new BarItem { Value = cp / sum * 100, Color = RandomColor() };
+			model.Axes.Add(new CategoryAxis
+			{
+				Position = AxisPosition.Left,
+				Key = "CakeAxis",
+				ItemsSource = new[]
+				{
+					"Apple cake",
+					"Baumkuchen",
+					"Bundt Cake",
+					"Chocolate cake",
+					"Carrot cake"
+				}
+			});
+			return model;
+		}
 
-        private static OxyColor RandomColor()
-        {
-            var r = new Random();
-            return OxyColor.FromRgb((byte)r.Next(255), (byte)r.Next(255), (byte)r.Next(255));
-        }
-    }
-    
+		private static BarItem RandomBarItem(double cp, double sum)
+		   => new BarItem { Value = cp / sum * 100, Color = RandomColor() };
+
+		private static OxyColor RandomColor()
+		{
+			var r = new Random();
+			return OxyColor.FromRgb((byte)r.Next(255), (byte)r.Next(255), (byte)r.Next(255));
+		}
+	}
+
 }

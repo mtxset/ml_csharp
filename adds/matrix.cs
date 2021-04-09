@@ -8,35 +8,35 @@ I need to create matrix stuff; there are few ways of doing it (c#):
 
 currently I write them in c#, but I may at some point rewrite it in python or c/cpp
 
-it's such a simple thing but it's data structure which will be used everywhere above, thus changing it at some point will introduce tragical amount of boring work 
+it's such a simple thing but it's data structure which will be used everywhere above, thus changing it at some point will introduce tragical amount of boring work
 */
 namespace ml {
-    public struct matrix_row {
-        public double[] col;
-    }
+	public struct matrix_row {
+		public double[] col;
+	}
 
-    public struct matrix {
-        public matrix_row[] row;
-    }
+	public struct matrix {
+		public matrix_row[] row;
+	}
 
-    public class matrixf {
+	public class matrixf {
 
-        public static matrix create_matrix(int rows, int columns) {
-            var result = new matrix();
-            int r, c;
+		public static matrix create_matrix(int rows, int columns) {
+			var result = new matrix();
+			int r, c;
 
-            result.row = new matrix_row[rows];
+			result.row = new matrix_row[rows];
 
-            for (r = 0; r < rows; r++) {
-                result.row[r] = new matrix_row();
-                result.row[r].col = new double[columns];
-                
-                for (c = 0; c < columns; c++)
-                    result.row[r].col[c] = 0;
-            }
+			for (r = 0; r < rows; r++) {
+				result.row[r] = new matrix_row();
+				result.row[r].col = new double[columns];
 
-            return result;
-        }
-    }
-    
+				for (c = 0; c < columns; c++)
+					result.row[r].col[c] = 0;
+			}
+
+			return result;
+		}
+	}
+
 }
