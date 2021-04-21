@@ -861,13 +861,12 @@ namespace ml {
 			a2 = matrix_insert_column(a2, 0, 1);									  // adding term
 
 			// a3 = sigmoid(a2 * Theta2');
-			result.combine_errors(matrix_multiply(a2, theta2, out a3));
+			result = matrix_multiply(a2, theta2, out a3);
 			if (result.has_errors()) {
 				Console.WriteLine(result.all_errors_to_string());
 				return result;
 			}
 			a3 = matrix_apply_function(a3, sigmoid);
-
 
 			if (result.has_errors()) {
 				Console.WriteLine(result.all_errors_to_string());
@@ -919,14 +918,18 @@ namespace ml {
 				a1[0] = train_data[i];
 				a1[0] = vector_insert(a1[0], 0, 1);		 // adding term
 
-				result = matrix_multiply(theta1, matrix_transpose(a1), out a2);
+				result = matrix_multiply(matrix_transpose(theta1), matrix_transpose(a1), out a2);
+				if (result.has_errors()) return result;
+
 				a2 = matrix_apply_function(a2, sigmoid);
 				a2 = matrix_insert_row(a2, 0, 1);		   // adding term
 
-				result.combine_errors(matrix_multiply(theta2, a2, out a3));
+				result = matrix_multiply(matrix_transpose(theta2), a2, out a3);
+				if (result.has_errors()) return result;
+
 				a3 = matrix_apply_function(a3, sigmoid);
 
-				Y2 = matrix_create(1, Y[0].Length);
+				Y2 = matrix_create(1, Y[0].Length);	// $$$$$
 				Y2[0] = Y[i];
 				// Feedforward
 

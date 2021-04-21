@@ -15,3 +15,6 @@
 8. write tests with non 0 theta and add tests for feature_normalize, gradient_descent from ex1
 9. write simple compression algorithm for numbers
 10. comment every function
+11. result_state add in every matrix function
+12. result_state in functions should always combine but sometimes just throw
+13. internal math/ml/matrix functions should not output

@@ -45,7 +45,8 @@ namespace ml {
 			const int debug_training_examples = 5;
 			const int max_iterations = 10;
 
-			double[] unrolled_theta = null, trained_theta = null, cost = null;
+			double cost;
+			double[] unrolled_theta = null, trained_theta = null;
 			double[][] theta1_gradient, theta2_gradient;
 
 			var random_theta_1 = ml_funcs.nn_debug_random_weights(hidden_layer_size, input_layer_size + 1);
@@ -79,7 +80,8 @@ namespace ml {
 				return result;
 			};
 
-			var result = ml_funcs.rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations, nn_cost_delegate, out cost, out trained_theta);
+			var result = ml_funcs.nn_cost_two_layer(train_data, result_data, random_theta_1, random_theta_2, output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
+			//var result = ml_funcs.rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations, nn_cost_delegate, out cost, out trained_theta);
 		}
 	}
 }
