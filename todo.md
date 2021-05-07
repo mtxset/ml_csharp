@@ -18,3 +18,7 @@
 11. result_state add in every matrix function
 12. result_state in functions should always combine but sometimes just throw
 13. internal math/ml/matrix functions should not output
+14. so far most bugs are because of matrices dimensions/"tranpose" being incorrect when performing some operation on them
+15. when returning the result I'm not keeping a place where exactly error happened.
+
+16

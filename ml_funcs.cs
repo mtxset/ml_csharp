@@ -929,17 +929,22 @@ namespace ml {
 
 				a3 = matrix_apply_function(a3, sigmoid);
 
-				Y2 = matrix_create(1, Y[0].Length);	// $$$$$
+				Y2 = matrix_create(1, Y[0].Length);
 				Y2[0] = Y[i];
 				// Feedforward
 
 				// deltas
 				Y2 = matrix_transpose(Y2);
-				result.combine_errors(matrix_subtract(a3, Y2, out d3));
-				result.combine_errors(matrix_multiply(matrix_transpose(theta2), d3, out d2));
+				result = matrix_subtract(a3, Y2, out d3); // d3 = a3 - Y2;
+				if (result.has_errors()) return result;
+
+				result = matrix_multiply(theta2, d3, out d2);
+				if (result.has_errors()) return result;
 
 				// sigmoidGradient(Theta1 * a1)];
-				result.combine_errors(matrix_multiply(theta1, matrix_transpose(a1), out temp));
+				result = matrix_multiply(matrix_transpose(theta1), matrix_transpose(a1), out temp);
+				if (result.has_errors()) return result;
+
 				temp = matrix_apply_function(temp, sigmoid_gradient);
 				temp = matrix_insert_row(temp, 0, 1);
 
@@ -954,14 +959,22 @@ namespace ml {
 				d2 = matrix_remove_row(d2, 0);
 
 				// delta update
-				result.combine_errors(matrix_multiply(d2, a1, out temp));
-				result.combine_errors(matrix_add(theta1_gradient, temp, out theta1_gradient));
+				result = matrix_multiply(d2, a1, out temp);
+				if (result.has_errors()) return result;
 
-				result.combine_errors(matrix_multiply(d3, matrix_transpose(a2), out temp));
-				result.combine_errors(matrix_add(theta2_gradient, temp, out theta2_gradient));
+				// Theta1_grad = Theta1_grad + d2 * a1';
+				double[][] theta_temp;
+				result = matrix_add(matrix_transpose(theta1_gradient), temp, out theta_temp);
+				if (result.has_errors()) return result;
+				theta1_gradient = matrix_transpose(theta_temp);
 
-				if (result.has_errors())
-					return result;
+				result = matrix_multiply(d3, matrix_transpose(a2), out temp);
+				if (result.has_errors()) return result;
+
+				// Theta2_grad = Theta2_grad + d3 * a2';
+				result = matrix_add(matrix_transpose(theta2_gradient), temp, out theta_temp);
+				if (result.has_errors()) return result;
+				theta2_gradient = matrix_transpose(theta_temp);
 			}
 
 			// adding regularization

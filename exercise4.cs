@@ -81,6 +81,8 @@ namespace ml {
 			};
 
 			var result = ml_funcs.nn_cost_two_layer(train_data, result_data, random_theta_1, random_theta_2, output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
+
+			// next computeNumericalGradient
 			//var result = ml_funcs.rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations, nn_cost_delegate, out cost, out trained_theta);
 		}
 	}
