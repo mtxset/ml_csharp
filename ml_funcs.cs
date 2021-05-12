@@ -8,7 +8,7 @@ namespace ml {
 
   	public delegate result_state cost_delegate(double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient);
 
-	public static bool matrix_compare_deep(double[][] x, double[][] y) {
+		public static bool matrix_compare_deep(double[][] x, double[][] y) {
 			if (x.Length != y.Length || x[0].Length != y[0].Length)
 				return false;
 
@@ -166,7 +166,6 @@ namespace ml {
 			return result;
 		}
 
-
 		private static double[][] matrix_op_vector(double[][] x, double[] y, operation op) {
 			var result = matrix_create(x.Length, x[0].Length);
 			int row, col;
@@ -287,6 +286,15 @@ namespace ml {
 					}
 				}
 			}
+			return result;
+		}
+
+		public static double vector_norm(double[] vector) {
+			double result = 0;
+
+			for (var i = 0; i < )
+
+			result = Math.Sqrt(result);
 			return result;
 		}
 
@@ -534,7 +542,7 @@ namespace ml {
 			int i = 1;
 			for (int row = 0; row < result.Length; row++)
 				for (int col = 0; col < result[0].Length; col++)
-					result[row][col] = Math.Sin(i++) / 10;
+					result[row][col] = Math.Sin(i++) / 10f;
 
 			return result;
 		}

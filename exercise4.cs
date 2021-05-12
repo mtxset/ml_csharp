@@ -46,13 +46,15 @@ namespace ml {
 			const int max_iterations = 10;
 
 			double cost;
-			double[] unrolled_theta = null, trained_theta = null;
+			double[] unrolled_theta = null, nn_gradient = null;
 			double[][] theta1_gradient, theta2_gradient;
 
 			var random_theta_1 = ml_funcs.nn_debug_random_weights(hidden_layer_size, input_layer_size + 1);
 			var random_theta_2 = ml_funcs.nn_debug_random_weights(output_layer_size, hidden_layer_size + 1);
 			var train_data = ml_funcs.matrix_transpose(ml_funcs.nn_debug_random_weights(debug_training_examples, input_layer_size));
 			var result_data = new double[] { 2, 3, 1, 2, 3 };
+
+			result_state result;
 
 			unrolled_theta = ml_funcs.matrix_flatten_two(random_theta_1, random_theta_2);
 
@@ -80,10 +82,55 @@ namespace ml {
 				return result;
 			};
 
-			var result = ml_funcs.nn_cost_two_layer(train_data, result_data, random_theta_1, random_theta_2, output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
+			Console.Write("nn_cost_two_layer");
+			{
+				result = ml_funcs.nn_cost_two_layer(train_data, result_data, random_theta_1, random_theta_2, output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
+				nn_gradient = ml_funcs.matrix_flatten_two(theta1_gradient, theta2_gradient);
+				if (result.has_errors()) {
+						Console.WriteLine(result.all_errors_to_string());
+						Console.WriteLine(" .. FAILED");
+						return;
+				} else if (Math.Round(cost, 4) != 2.101) {
+					Console.WriteLine(" .. FAILED");
+					return;
+				}
+
+				Console.WriteLine(" .. OK");
+			}
+
+			Console.Write("numerical gradient test");
+			{
+				double[] numerical_gradient = new double[unrolled_theta.Length];
+				double[] perturbation = new double[unrolled_theta.Length];
+				double[][] theta_1, theta_2;
+				double exponent = 1e-4;
+				double cost_1, cost_2;
+
+				// bool success = true;
+
+				for (var i = 0; i < unrolled_theta.Length; i++) {
+					perturbation[i] = exponent;
+					theta_1 = ml_funcs.matrix_subtract_vector_scalar(random_theta_1, perturbation);
+					theta_2 = ml_funcs.matrix_subtract_vector_scalar(random_theta_2, perturbation);
+					ml_funcs.nn_cost_two_layer(train_data, result_data, theta_1, theta_2, output_layer_size, lambda, out cost_1, out theta1_gradient, out theta2_gradient);
+
+					theta_1 = ml_funcs.matrix_add_vector_scalar(random_theta_1, perturbation);
+					theta_2 = ml_funcs.matrix_add_vector_scalar(random_theta_2, perturbation);
+					ml_funcs.nn_cost_two_layer(train_data, result_data, theta_1, theta_2, output_layer_size, lambda, out cost_2, out theta1_gradient, out theta2_gradient);
+
+					numerical_gradient[i] = (cost_2 - cost_1) / (2 * exponent);
+					perturbation[i] = 0;
+				}
+
+				// if (!success) {
+				// 	Console.WriteLine(" .. FAILED");
+				// 	Console.WriteLine(result.all_errors_to_string());
+				// 	return;
+				// }
+			}
 
 			// next computeNumericalGradient
-			//var result = ml_funcs.rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations, nn_cost_delegate, out cost, out trained_theta);
+			// var result = ml_funcs.rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations, nn_cost_delegate, out cost, out trained_theta);
 		}
 	}
 }
