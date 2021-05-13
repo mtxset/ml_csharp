@@ -8,10 +8,10 @@ using OxyPlot.Series;
 namespace ml {
 	class Program {
 		static void Main(string[] args) {
-			//ml_func_tests.test_matrix_unflatten();
-			exercise4.test_debug_nn();
+			//ml_func_tests.test_matrix_norm();
+			//exercise4.test_debug_nn();
 			//exercise4.test_flatten_unflatten();
-			//ml_func_tests.run_all_tests();
+			ml_func_tests.run_all_tests();
 			// var outputToFile = "./images/ex1.png";
 
 			// var width = 1024;

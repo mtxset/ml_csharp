@@ -292,7 +292,23 @@ namespace ml {
 		public static double vector_norm(double[] vector) {
 			double result = 0;
 
-			for (var i = 0; i < )
+			for (var i = 0; i < vector.Length; i++) {
+				result += vector[i] * vector[i];
+      }
+
+			result = Math.Sqrt(result);
+			return result;
+		}
+
+		public static double matrix_norm(double[][] matrix) {
+			double result = 0;
+			int row, col;
+
+			for (row = 0; row < matrix.Length; row++) {
+					for (col = 0; col < matrix[0].Length; col++) {
+						result += matrix[row][col] * matrix[row][col];
+					}
+			}
 
 			result = Math.Sqrt(result);
 			return result;

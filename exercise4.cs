@@ -98,35 +98,71 @@ namespace ml {
 				Console.WriteLine(" .. OK");
 			}
 
-			Console.Write("numerical gradient test");
+			// Console.Write("numerical gradient test");
+			// {
+			// 	double[] numerical_gradient = new double[unrolled_theta.Length];
+			// 	double[] perturbation = new double[unrolled_theta.Length];
+			// 	double[][] theta_1, theta_2;
+			// 	double exponent = 1e-4;
+			// 	double cost_1, cost_2;
+
+			// 	// bool success = true;
+
+			// 	for (var i = 0; i < unrolled_theta.Length; i++) {
+			// 		perturbation[i] = exponent;
+			// 		theta_1 = ml_funcs.matrix_subtract_vector_scalar(random_theta_1, perturbation);
+			// 		theta_2 = ml_funcs.matrix_subtract_vector_scalar(random_theta_2, perturbation);
+			// 		ml_funcs.nn_cost_two_layer(train_data, result_data, theta_1, theta_2, output_layer_size, lambda, out cost_1, out theta1_gradient, out theta2_gradient);
+
+			// 		theta_1 = ml_funcs.matrix_add_vector_scalar(random_theta_1, perturbation);
+			// 		theta_2 = ml_funcs.matrix_add_vector_scalar(random_theta_2, perturbation);
+			// 		ml_funcs.nn_cost_two_layer(train_data, result_data, theta_1, theta_2, output_layer_size, lambda, out cost_2, out theta1_gradient, out theta2_gradient);
+
+			// 		numerical_gradient[i] = (cost_2 - cost_1) / (2 * exponent);
+			// 		perturbation[i] = 0;
+			// 	}
+
+			// 	var diff_a = new double[unrolled_theta.Length];
+			// 	var diff_b = new double[unrolled_theta.Length];
+			// 	for (var i = 0; i < unrolled_theta.Length; i++) {
+			// 		diff_a[i] = numerical_gradient[i] - nn_gradient[i];
+			// 		diff_b[i] = numerical_gradient[i] + nn_gradient[i];
+			// 	}
+			// 	var norm = ml_funcs.vector_norm(diff_a) / ml_funcs.vector_norm(diff_b);
+
+			// 	// if (!success) {
+			// 	// 	Console.WriteLine(" .. FAILED");
+			// 	// 	Console.WriteLine(result.all_errors_to_string());
+			// 	// 	return;
+			// 	// }
+			// }
+			Console.Write("test gradient norm ");
 			{
-				double[] numerical_gradient = new double[unrolled_theta.Length];
-				double[] perturbation = new double[unrolled_theta.Length];
-				double[][] theta_1, theta_2;
-				double exponent = 1e-4;
-				double cost_1, cost_2;
-
-				// bool success = true;
-
-				for (var i = 0; i < unrolled_theta.Length; i++) {
-					perturbation[i] = exponent;
-					theta_1 = ml_funcs.matrix_subtract_vector_scalar(random_theta_1, perturbation);
-					theta_2 = ml_funcs.matrix_subtract_vector_scalar(random_theta_2, perturbation);
-					ml_funcs.nn_cost_two_layer(train_data, result_data, theta_1, theta_2, output_layer_size, lambda, out cost_1, out theta1_gradient, out theta2_gradient);
-
-					theta_1 = ml_funcs.matrix_add_vector_scalar(random_theta_1, perturbation);
-					theta_2 = ml_funcs.matrix_add_vector_scalar(random_theta_2, perturbation);
-					ml_funcs.nn_cost_two_layer(train_data, result_data, theta_1, theta_2, output_layer_size, lambda, out cost_2, out theta1_gradient, out theta2_gradient);
-
-					numerical_gradient[i] = (cost_2 - cost_1) / (2 * exponent);
-					perturbation[i] = 0;
+				double[] test_nn_gradient = new double[nn_gradient.Length];
+				string file_output;
+				int precision = 10;
+				result = utils.file_utils.read_file("./data/ex4_nn_gradient.txt", out file_output);
+				if (result.has_errors()) {
+					Console.WriteLine(result.all_errors_to_string());
+					Console.WriteLine(" .. FAILED");
+					return;
 				}
 
-				// if (!success) {
-				// 	Console.WriteLine(" .. FAILED");
-				// 	Console.WriteLine(result.all_errors_to_string());
-				// 	return;
-				// }
+				var lines = file_output.Split("\n");
+				if (lines.Length != nn_gradient.Length) {
+					Console.WriteLine($" .. FAILED. lines ({lines.Length}) and nn_gradient ({nn_gradient.Length}) should be equal.");
+					return;
+				}
+
+				for (var i = 0; i < lines.Length; i++) {
+					test_nn_gradient[i] = Convert.ToDouble(lines[i]);
+
+					if (Math.Round(test_nn_gradient[i], precision) != Math.Round(nn_gradient[i], precision)) {
+						Console.WriteLine(" .. FAILED");
+						return;
+					}
+				}
+				Console.WriteLine(" .. OK");
 			}
 
 			// next computeNumericalGradient

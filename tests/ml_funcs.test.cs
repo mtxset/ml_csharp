@@ -5,6 +5,31 @@ using System.IO;
 namespace ml {
 	public static class ml_func_tests {
 
+		public static void test_matrix_norm() {
+			Console.Write("matrix_norm");
+			var x = ml_funcs.nn_debug_random_weights(2, 2);
+
+			var result = ml_funcs.matrix_norm(x);
+
+			if (Math.Round(result, 3) == 0.146)
+				Console.WriteLine(" .. OK");
+			else
+				Console.WriteLine(" .. FAILED");
+		}
+
+		public static void test_vector_norm() {
+			Console.Write("vector_norm");
+			var x = new double[] { 0, -2 };
+			var xx = new double[] { -1, 9, 56 };
+
+			var result_x  = ml_funcs.vector_norm(x);
+			var result_xx  = ml_funcs.vector_norm(xx);
+			if (result_x == 2 && Math.Round(result_xx, 3) == 56.727)
+				Console.WriteLine(" .. OK");
+			else
+				Console.WriteLine(" .. FAILED");
+		}
+
 		public static void test_matrix_unflatten() {
 			var x = new double[] { 1, 2, 3 };
 			var xx = new double[] { 1, 2, 3, 4, 5, 6 };
@@ -211,10 +236,13 @@ namespace ml {
 			test_sigmoid();
 			test_vector_insert();
 			test_matrix_unflatten();
+			test_vector_norm();
 
 			ml.exercise2.test_log_regression_cost();
 			ml.exercise2.test_cost_logistic_regression_regularized();
 			ml.exercise3.test_rasmussen();
+			ml.exercise4.test_flatten_unflatten();
+			ml.exercise4.test_debug_nn();
 
 			Console.WriteLine($"Testing time: {s.Elapsed}");
 		}
