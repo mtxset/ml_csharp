@@ -243,6 +243,7 @@ namespace ml {
 			ml.exercise3.test_rasmussen();
 			ml.exercise4.test_flatten_unflatten();
 			ml.exercise4.test_debug_nn();
+			ml.exercise4.test_nn();
 
 			Console.WriteLine($"Testing time: {s.Elapsed}");
 		}

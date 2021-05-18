@@ -3,6 +3,25 @@ using System.IO;
 using ml;
 
 namespace utils {
+
+	public static class string_utils {
+		public static double[][] string_to_matrix(string data, string split_char = ",") {
+			double[][] result = null;
+
+			var lines = data.Split("\n");
+			var data_size = lines[0].Split(split_char).Length;
+			result = ml_funcs.matrix_create(lines.Length, data_size);
+
+			for (var row = 0; row < lines.Length; row++) {
+				var temp_line = lines[row].Split(split_char);
+
+				for (var col = 0; col < temp_line.Length; col++)
+					result[row][col] = Convert.ToDouble(temp_line[col]);
+			}
+			return result;
+		}
+	}
+
 	public static class file_utils {
 		public static result_state parse_file(string file_path, out double[][] train_data, out double[] result_data, string split_char = ",") {
 

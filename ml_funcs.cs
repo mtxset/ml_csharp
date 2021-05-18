@@ -408,12 +408,12 @@ namespace ml {
 		///	  Flattens all values into vector;
 		///	  by default takes by row: result = row[0] + row[1] .. otherwise result = col[0] + col[1] ..;
 		/// </summary>
-		public static double[] matrix_flatten(double[][] matrix, bool by_row = true) {
+		public static double[] matrix_flatten(double[][] matrix, flatten_direction direction = flatten_direction.by_row) {
 			var result = new double[matrix.Length * matrix[0].Length];
 
 			int i = 0;
 
-			if (by_row) {
+			if (direction == flatten_direction.by_row) {
 				for (int row = 0; row < matrix.Length; row++)
 				for (int col = 0; col < matrix[0].Length; col++)
 					result[i++] = matrix[row][col];
@@ -426,9 +426,14 @@ namespace ml {
 			return result;
 		}
 
-		public static double[] matrix_flatten_two(double[][] matrix_x, double[][] matrix_y, bool by_row = true) {
-			var unroll_x = ml_funcs.matrix_flatten(matrix_x);
-			var unroll_y = ml_funcs.matrix_flatten(matrix_y);
+		public enum flatten_direction {
+			by_row,
+			by_column,
+		};
+
+		public static double[] matrix_flatten_two(double[][] matrix_x, double[][] matrix_y, flatten_direction direction = flatten_direction.by_row) {
+			var unroll_x = ml_funcs.matrix_flatten(matrix_x, direction);
+			var unroll_y = ml_funcs.matrix_flatten(matrix_y, direction);
 			var result = new double[unroll_x.Length + unroll_y.Length];
 			unroll_x.CopyTo(result, 0);
 			unroll_y.CopyTo(result, unroll_x.Length);
