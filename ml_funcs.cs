@@ -451,6 +451,34 @@ namespace ml {
 			return result;
 		}
 
+		public static double[] matrix_sum_by_column(double[][] matrix) {
+			var result = new double[matrix[0].Length];
+			double col_sum = 0;
+			for (int col = 0; col < matrix[0].Length; col++) {
+				col_sum = 0;
+				for (int row = 0; row < matrix.Length; row++) {
+					col_sum += matrix[row][col];
+				}
+				result[col] = col_sum;
+			}
+
+			return result;
+		}
+
+		public static double vector_sum(double[] vector) {
+			double result = 0;
+
+			for (var i = 0; i < vector.Length; i++) {
+				result += vector[i];
+			}
+
+			return result;
+		}
+
+		public static double pow2(double value) {
+			return Math.Pow(value, 2);
+		}
+
 		public static double sigmoid(double value) {
 			return 1.0d / (1.0d + Math.Exp(-value));
 		}
@@ -692,27 +720,27 @@ namespace ml {
 					else if (M == 0)
 						break;
 
-					A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3);					 // make cubic extrapolation
+					A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3);					 	// make cubic extrapolation
 					B = 3 * (f3 - f2) - z3 * (d3 + 2 * d2);
 					z2 = -d2 * z3 *z3 / (B + Math.Sqrt(B*B - A * d2 * z3 * z3));// num. error possible
 
-					if (!(B*B -A * d2 * z3*z3 >= 0) || double.IsNaN(z2) || double.IsInfinity(z2) || z2 < 0) {
-						if (limit < -0.5)									   // if we have no upper limit
-							z2 = z1 * (EXT - 1);								// the extrapolate the maximum amount
+					if (!(B*B -A * d2 * z3 * z3 >= 0) || double.IsNaN(z2) || double.IsInfinity(z2) || z2 < 0) {
+						if (limit < -0.5)									   						// if we have no upper limit
+							z2 = z1 * (EXT - 1);													// the extrapolate the maximum amount
 						else
-							z2 = (limit - z1) / 2;							  // otherwise bisect
+							z2 = (limit - z1) / 2;							  				// otherwise bisect
 					}
-					else if (limit > -0.5 && z2 + z1 > limit)				   // extraplation beyond max?
-						z2 = (limit-z1) / 2;									// bisect
-					else if (limit < -0.5 && z2 + z1 > z1 * EXT)				// extrapolation beyond limit
-						z2 = z1 * (EXT - 1.0);								  // set to extrapolation limit
+					else if (limit > -0.5 && z2 + z1 > limit)				  // extraplation beyond max?
+						z2 = (limit-z1) / 2;														// bisect
+					else if (limit < -0.5 && z2 + z1 > z1 * EXT)			// extrapolation beyond limit
+						z2 = z1 * (EXT - 1.0);								  				// set to extrapolation limit
 					else if (z2 < -z3 * INT)
 						z2 = -z3 * INT;
-					else if (limit > -0.5 && z2 < (limit - z1) *(1.0 - INT))	// too close to limit?
+					else if (limit > -0.5 && z2 < (limit - z1) * (1.0 - INT))	// too close to limit?
 						z2 = (limit - z1) * (1.0 - INT);
 
-					f3 = f2; d3 = d2; z3 = -z2;								 // set point 3 equal to point 2
-					z1 += z2;												   // update current estimates
+					f3 = f2; d3 = d2; z3 = -z2;								 				// set point 3 equal to point 2
+					z1 += z2;												   								// update current estimates
 					for (c = 0; c < feature_count; c++)
 						X[c] += z2 * s[c];
 
@@ -726,10 +754,10 @@ namespace ml {
 					d2 = 0d;
 					for (c = 0; c < feature_count; c++)
 						d2 += df2[c] * s[c];
-				}															   // end of line search
+				}															   										// end of line search
 
-				if (success) {												  // if line search succeeded
-					f1 = f2;													// f1 - cost
+				if (success) {												  						// if line search succeeded
+					f1 = f2;																					// f1 - cost
 					cost_progress[i] = f1;
 
 					A = B = C = 0;
@@ -758,8 +786,8 @@ namespace ml {
 					if (d2 > 0) {
 						d2 = 0;
 						for (c = 0; c < feature_count; c++) {
-							s[c] = -df1[c];				 // new slope must be negative
-							d2 += -s[c] * s[c];			 // otherwise use steepest direction
+							s[c] = -df1[c];				 											// new slope must be negative
+							d2 += -s[c] * s[c];			 										// otherwise use steepest direction
 						}
 					}
 
@@ -860,14 +888,6 @@ namespace ml {
 			return result;
 		}
 
-		public static result_state nn_cost(double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient) {
-			var result = new result_state();
-			cost = 0;
-			gradient = null;
-
-			return result;
-		}
-
 		public static result_state nn_cost_two_layer(double[][] train_data, double[] result_data, double[][] theta1, double[][] theta2, int label_count, double lambda, out double cost, out double[][] theta1_gradient, out double[][] theta2_gradient) {
 			var result = new result_state();
 			double sub_sum = 0, sum = 0, theta1_reg, theta2_reg;
@@ -919,24 +939,21 @@ namespace ml {
 
 			cost = (1d / train_data_count) * sum;
 
+
 			// regularization
 			{
 				theta1_reg = 0;
-				for (row = 0; row < theta1.Length; row++) {
-					sum = 0;
-					for (col = 1; col < theta1[0].Length; col++) // skipping theta(0)
-						sum += Math.Pow(theta1[row][col], 2);
-
-					theta1_reg += sum;
+				var temp_theta1 = matrix_apply_function(theta1, pow2);
+				var summed_theta1 = matrix_sum_by_column(matrix_transpose(temp_theta1));
+				for (i = 1; i < summed_theta1.Length; i++) { // skipping theta(0)
+					theta1_reg += summed_theta1[i];
 				}
 
 				theta2_reg = 0;
-				for (row = 0; row < theta2.Length; row++) {
-					sum = 0;
-					for (col = 1; col < theta2[0].Length; col++) // skipping theta(0)
-						sum += Math.Pow(theta2[row][col], 2);
-
-					theta2_reg += sum;
+				var temp_theta2 = matrix_apply_function(theta2, pow2);
+				var summed_theta2 = matrix_sum_by_column(matrix_transpose(temp_theta2));
+				for (i = 1; i < summed_theta2.Length; i++) { // skipping theta(0)
+					theta2_reg += summed_theta2[i];
 				}
 			}
 
@@ -1012,14 +1029,14 @@ namespace ml {
 				for (col = 0; col < theta1_gradient[0].Length; col++) {
 					theta1_gradient[row][col] /= train_data_count;
 					if (col > 0) // skipping bias term
-						theta1_gradient[row][col] += (lambda/m) * theta1_gradient[row][col];
+						theta1_gradient[row][col] += (lambda/m) * theta1[row][col];
 				}
 
 			for (row = 0; row < theta2_gradient.Length; row++)
 				for (col = 0; col < theta2_gradient[0].Length; col++) {
 					theta2_gradient[row][col] /= train_data_count;
 					if (col > 0) // skipping bias term
-						theta2_gradient[row][col] += (lambda/m) * theta2_gradient[row][col];
+						theta2_gradient[row][col] += (lambda/m) * theta2[row][col];
 				}
 
 			return result;
@@ -1120,7 +1137,7 @@ namespace ml {
 			if (train_data.Length != result_data.Length)
 				result.add_error("Arrays train_data and result_data should have same amount of entries");
 
-			if (train_data[0].Length != theta.Length-1)
+			if (train_data[0].Length != theta.Length - 1)
 				result.add_error("train_data should have one less size of theta entries");
 
 			if (result.has_errors())

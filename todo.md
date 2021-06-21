@@ -20,5 +20,5 @@
 13. internal math/ml/matrix functions should not output
 14. so far most bugs are because of matrices dimensions/"tranpose" being incorrect when performing some operation on them
 15. when returning the result I'm not keeping a place where exactly error happened.
-
 16. need to check file_utils parser to ignore empty lines (parse_file is incorrect because it takes assumes that last line is empty, just ignore empty lines)
+17.

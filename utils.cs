@@ -9,11 +9,11 @@ namespace utils {
 			double[][] result = null;
 
 			var lines = data.Split("\n");
-			var data_size = lines[0].Split(split_char).Length;
-			result = ml_funcs.matrix_create(lines.Length, data_size);
+			var data_size = lines[0].Trim().Split(split_char).Length;
+			result = ml_funcs.matrix_create(lines.Length, data_size, -1);
 
 			for (var row = 0; row < lines.Length; row++) {
-				var temp_line = lines[row].Split(split_char);
+				var temp_line = lines[row].Trim().Split(split_char);
 
 				for (var col = 0; col < temp_line.Length; col++)
 					result[row][col] = Convert.ToDouble(temp_line[col]);

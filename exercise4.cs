@@ -5,28 +5,6 @@ using static ml.ml_funcs;
 namespace ml {
 	public static class exercise4 {
 
-		public static void test_nn() {
-			result_state result;
-			string file_content_1, file_content_2;
-
-			Console.Write("test training number recognition ");
-
-			result = file_utils.read_file("./data/ex4_theta_1.txt", out file_content_1);
-			result.combine_errors(utils.file_utils.read_file("./data/ex4_theta_2.txt", out file_content_2));
-			if (result.has_errors()) {
-				Console.WriteLine(result.all_errors_to_string());
-				Console.WriteLine(" .. FAILED");
-				return;
-			}
-
-			var theta_1 = string_utils.string_to_matrix(file_content_1, " ");
-			var theta_2 = string_utils.string_to_matrix(file_content_2, " ");
-
-			var unrolled_theta = matrix_flatten_two(theta_1, theta_2, flatten_direction.by_column);
-
-			Console.WriteLine(" .. OK");
-		}
-
 		public static void test_flatten_unflatten() {
 			Console.Write("test_flatten_unflatten");
 			const int input_layer_size = 3;
@@ -61,28 +39,100 @@ namespace ml {
 
 		}
 
-		public static void test_debug_nn() {
-			const double lambda = 0;
-			const int input_layer_size = 3;
-			const int hidden_layer_size = 5;
-			const int output_layer_size = 3;
-			const int debug_training_examples = 5;
-			const int max_iterations = 10;
+		public static void test_nn() {
+			Console.Write("two_layer_nn ");
+			double lambda = 0;
+			const int input_layer_size = 400;
+			const int hidden_layer_size = 25;
+			const int output_layer_size = 10;
+			int training_examples = 0;
 
 			double cost;
-			double[] unrolled_theta = null, nn_gradient = null;
+			double[] result_data, unrolled_theta;			// y
+			double[][] train_data, theta_1, theta_2;	// X - train_data
 			double[][] theta1_gradient, theta2_gradient;
-
-			var random_theta_1 = nn_debug_random_weights(hidden_layer_size, input_layer_size + 1);
-			var random_theta_2 = nn_debug_random_weights(output_layer_size, hidden_layer_size + 1);
-			var train_data = matrix_transpose(nn_debug_random_weights(debug_training_examples, input_layer_size));
-			var result_data = new double[] { 2, 3, 1, 2, 3 };
 
 			result_state result;
 
-			unrolled_theta = matrix_flatten_two(random_theta_1, random_theta_2);
+			// Loading X and Y
+			{
+				string X_file_content;
+				result = file_utils.read_file("./data/ex4_data_X.txt", out X_file_content);
+				if (result.has_errors()) {
+					Console.WriteLine(result.all_errors_to_string());
+					return;
+				}
 
-			// I don't know how to make it simple
+				train_data = string_utils.string_to_matrix(X_file_content, " ");
+				if (train_data.Length != 5000 || train_data[0].Length != 400) {
+						Console.WriteLine(" .. FAILED. Should have 5000 training examples and 400 features");
+						return;
+				}
+
+				training_examples = train_data.Length;
+				result_data = new double[training_examples];
+				int y = 0, label = 10;
+				for (var i = 0; i < training_examples; i++) {
+					result_data[i] = label;
+					if (++y == 500) {
+						if (label == 10)
+							label = 1;
+						else
+							label++;
+						y = 0;
+					}
+				}
+			}
+
+			// Load weights
+			{
+				string file_content_1, file_content_2;
+				result = file_utils.read_file("./data/ex4_theta_1.txt", out file_content_1);
+				result.combine_errors(utils.file_utils.read_file("./data/ex4_theta_2.txt", out file_content_2));
+
+				if (result.has_errors()) {
+					Console.WriteLine(result.all_errors_to_string());
+					return;
+				}
+
+				theta_1 = string_utils.string_to_matrix(file_content_1, " ");
+			 	theta_2 = string_utils.string_to_matrix(file_content_2, " ");
+
+				unrolled_theta = matrix_flatten_two(theta_1, theta_2, flatten_direction.by_column);
+
+				if (unrolled_theta.Length != 10285) {
+					Console.WriteLine(".. FAILED. Incorrect unrolled theta parameter count");
+					return;
+				}
+			}
+
+			// testing cost with initial thetas
+			{
+				lambda = 0;
+				result = nn_cost_two_layer(train_data, result_data, matrix_transpose(theta_1), matrix_transpose(theta_2), output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
+				if (result.has_errors()) {
+					Console.WriteLine(result.all_errors_to_string());
+					return;
+				}
+
+				if (Math.Round(cost, 6) != 0.287629) {
+					Console.WriteLine(".. FAILED. Cost with regularization off (labda 0) is incorrect");
+					return;
+				}
+
+				lambda = 1;
+				result = nn_cost_two_layer(train_data, result_data, matrix_transpose(theta_1), matrix_transpose(theta_2), output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
+				if (result.has_errors()) {
+					Console.WriteLine(result.all_errors_to_string());
+					return;
+				}
+
+				if (Math.Round(cost, 6) != 0.383770) {
+					Console.WriteLine(".. FAILED. Cost with regularization off (labda 1) is incorrect");
+					return;
+				}
+			}
+
 			cost_delegate nn_cost_delegate = (double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient) => {
 				var result = new result_state();
 				cost = 0;
@@ -106,7 +156,32 @@ namespace ml {
 				return result;
 			};
 
-			Console.Write("nn_cost_two_layer");
+			//result = rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations, nn_cost_delegate, out cost, out trained_theta);
+
+			Console.WriteLine(".. OK");
+		}
+
+		public static void test_debug_nn() {
+			const double lambda = 0;
+			const int input_layer_size = 3;
+			const int hidden_layer_size = 5;
+			const int output_layer_size = 3;
+			const int debug_training_examples = 5;
+
+			double cost;
+			double[] unrolled_theta = null, nn_gradient = null;
+			double[][] theta1_gradient, theta2_gradient;
+
+			var random_theta_1 = nn_debug_random_weights(hidden_layer_size, input_layer_size + 1);
+			var random_theta_2 = nn_debug_random_weights(output_layer_size, hidden_layer_size + 1);
+			var train_data = matrix_transpose(nn_debug_random_weights(debug_training_examples, input_layer_size));
+			var result_data = new double[] { 2, 3, 1, 2, 3 };
+
+			result_state result;
+
+			unrolled_theta = matrix_flatten_two(random_theta_1, random_theta_2);
+
+			Console.Write("nn_cost_two_layer ");
 			{
 				result = nn_cost_two_layer(train_data, result_data, random_theta_1, random_theta_2, output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
 				nn_gradient = matrix_flatten_two(theta1_gradient, theta2_gradient);
@@ -188,11 +263,6 @@ namespace ml {
 				}
 				Console.WriteLine(" .. OK");
 			}
-
-
-
-			// next computeNumericalGradient
-			// var result = rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations, nn_cost_delegate, out cost, out trained_theta);
 		}
 	}
 }
