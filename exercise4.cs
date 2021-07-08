@@ -48,8 +48,8 @@ namespace ml {
 			int training_examples = 0;
 
 			double cost;
-			double[] result_data, unrolled_theta;			// y
-			double[][] train_data, theta_1, theta_2;	// X - train_data
+			double[] result_data, unrolled_theta, trained_theta, cost_list;	// y
+			double[][] train_data, theta_1, theta_2;												// X - train_data
 			double[][] theta1_gradient, theta2_gradient;
 
 			result_state result;
@@ -107,6 +107,7 @@ namespace ml {
 			}
 
 			// testing cost with initial thetas
+			if (1 == 0)
 			{
 				lambda = 0;
 				result = nn_cost_two_layer(train_data, result_data, matrix_transpose(theta_1), matrix_transpose(theta_2), output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
@@ -133,30 +134,47 @@ namespace ml {
 				}
 			}
 
-			cost_delegate nn_cost_delegate = (double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient) => {
-				var result = new result_state();
-				cost = 0;
-				gradient = null;
+			// training nn
+			{
+				theta_1 = nn_random_weights(input_layer_size + 1, hidden_layer_size);
+				theta_2 = nn_random_weights(hidden_layer_size + 1, output_layer_size);
 
-				// 1. convert theta back to neural network layers
-				var theta1 = matrix_unflatten(theta, hidden_layer_size, 0, (input_layer_size + 1) * hidden_layer_size - 1);
-				var theta2 = matrix_unflatten(theta, output_layer_size, (input_layer_size + 1) * hidden_layer_size);
+				lambda = 1;
 
-				// 2. pass to nn_cost_two_layer neural network thetas
-				result = nn_cost_two_layer(train_data, result_data, theta1, theta2, output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
+				result = nn_cost_two_layer(train_data, result_data, matrix_transpose(theta_1), matrix_transpose(theta_2), output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
 
 				if (result.has_errors()) {
 					Console.WriteLine(result.all_errors_to_string());
-					return result;
+					return;
 				}
 
-				// 3. we get theta1, theta2 gradients then we flattan them into gradient
-				gradient = matrix_flatten_two(theta1_gradient, theta2_gradient);
+				cost_delegate nn_cost_delegate = (double[][] train_data, double[] result_data, double[] theta, double lambda, out double cost, out double[] gradient) => {
+					var result = new result_state();
+					cost = 0;
+					gradient = null;
 
-				return result;
-			};
+					// 1. convert theta back to neural network layers
+					var theta1 = matrix_unflatten(theta, hidden_layer_size, 0, (input_layer_size + 1) * hidden_layer_size - 1);
+					var theta2 = matrix_unflatten(theta, output_layer_size, (input_layer_size + 1) * hidden_layer_size);
 
-			//result = rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations, nn_cost_delegate, out cost, out trained_theta);
+					// 2. pass to nn_cost_two_layer neural network thetas
+					result = nn_cost_two_layer(train_data, result_data, theta1, theta2, output_layer_size, lambda, out cost, out theta1_gradient, out theta2_gradient);
+
+					Console.WriteLine($"Cost: {cost}");
+
+					if (result.has_errors()) {
+						Console.WriteLine(result.all_errors_to_string());
+						return result;
+					}
+
+					// 3. we get theta1, theta2 gradients then we flattan them into gradient
+					gradient = matrix_flatten_two(theta1_gradient, theta2_gradient);
+
+					return result;
+				};
+
+				result = rasmussen(train_data, result_data, unrolled_theta, lambda, max_iterations: 3, nn_cost_delegate, out cost_list, out trained_theta);
+			}
 
 			Console.WriteLine(".. OK");
 		}

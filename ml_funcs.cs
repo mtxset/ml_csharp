@@ -601,8 +601,8 @@ namespace ml {
 		// W = rand(L_out, 1 + L_in) * 2 * epsilonInit - epsilonInit;
 		public static double[][] nn_random_weights(int input_layer, int output_layer, int seed = -1) {
 			var result = matrix_create(output_layer, input_layer);
-			// double epsilon_init = 0.12;
-			double epsilon_init = Math.Sqrt(6) / Math.Sqrt(input_layer + output_layer);
+			double epsilon_init = 0.12;
+			//double epsilon_init = Math.Sqrt(6) / Math.Sqrt(input_layer + output_layer);
 
 			Random random = (seed == -1) ? new Random() : new Random(seed);
 
@@ -686,7 +686,7 @@ namespace ml {
 						else {
 							// cubic fit
 							A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3);
-							B = 3 * (f3 - f2) -z3* (d3 + 2 * d2);
+							B = 3 * (f3 - f2) - z3 * (d3 + 2 * d2);
 							z2 = (Math.Sqrt(B * B - A * d2 * z3 *z3 ) - B) / A;
 						}
 
@@ -722,7 +722,7 @@ namespace ml {
 
 					A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3);					 	// make cubic extrapolation
 					B = 3 * (f3 - f2) - z3 * (d3 + 2 * d2);
-					z2 = -d2 * z3 *z3 / (B + Math.Sqrt(B*B - A * d2 * z3 * z3));// num. error possible
+					z2 = -d2 * z3 * z3 / (B + Math.Sqrt(B * B - A * d2 * z3 * z3)); // num. error possible
 
 					if (!(B*B -A * d2 * z3 * z3 >= 0) || double.IsNaN(z2) || double.IsInfinity(z2) || z2 < 0) {
 						if (limit < -0.5)									   						// if we have no upper limit
@@ -731,7 +731,7 @@ namespace ml {
 							z2 = (limit - z1) / 2;							  				// otherwise bisect
 					}
 					else if (limit > -0.5 && z2 + z1 > limit)				  // extraplation beyond max?
-						z2 = (limit-z1) / 2;														// bisect
+						z2 = (limit - z1) / 2;														// bisect
 					else if (limit < -0.5 && z2 + z1 > z1 * EXT)			// extrapolation beyond limit
 						z2 = z1 * (EXT - 1.0);								  				// set to extrapolation limit
 					else if (z2 < -z3 * INT)
